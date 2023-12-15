@@ -6,16 +6,12 @@ class WOOptions {
 	protected $options = array();
 	protected $ns;
 
-	public function __construct( $ns = null ) {
-		if ( ! $ns ) {
-			$ns = 'wo';
-		}
-
-		$this->ns = $ns . '_';
+	public function __construct( $ns ) {
+		$this->ns = $ns;
 	}
 
 	private function ns() {
-		return $this->ns;
+		return $this->ns . '_';
 	}
 
 	public function key( $key ) {
@@ -49,7 +45,25 @@ class WOOptions {
 	}
 
 	public function sanitize_default( $value ) {
+		if ( ! $value ) {
+			return null;
+		}
+
 		return esc_url_raw( wp_strip_all_tags( stripslashes( $value ) ) );
+	}
+
+	public function sanitize_input_basic( $input, $capability ) {
+		if ( ! current_user_can( $capability ) ) {
+			die();
+		}
+
+		$output = array();
+
+		foreach ( $input as $key => $value ) {
+			$output[ $key ] = $this->sanitize_default( $input[ $key ] );
+		}
+
+		return $output;
 	}
 
 	public function add_sections_and_settings( $settings, $class_instance ) {

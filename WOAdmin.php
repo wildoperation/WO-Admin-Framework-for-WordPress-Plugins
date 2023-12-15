@@ -108,7 +108,7 @@ class WOAdmin {
 		<?php
 	}
 
-	public function admin_page( $admin_title, $admin_action, $admin_url, $settings, $options_framework ) {
+	public function settings_page( $admin_title, $admin_action, $admin_url, $settings, $options_framework ) {
 		$this->start();
 		$this->title( $admin_title );
 		$this->form_start( $admin_action );
