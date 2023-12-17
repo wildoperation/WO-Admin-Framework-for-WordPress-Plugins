@@ -14,6 +14,29 @@ class WOMeta {
 		return $prefix . $this->ns . '_' . $key;
 	}
 
+	public function get_post_meta( $post_id, $allowed_keys ) {
+		$post_meta   = get_post_meta( $post_id );
+		$parsed_meta = array();
+
+		foreach ( $allowed_keys as $key => $allowed_keyvalue ) {
+			$full_key = $this->make_key( $key );
+			$value    = null;
+
+			if ( isset( $post_meta[ $full_key ] ) ) {
+				$value = $post_meta[ $full_key ];
+
+				if ( is_array( $value ) && count( $value ) === 1 ) {
+					$value = $value[0];
+				}
+			}
+
+			$parsed_meta[ $full_key ] = $value;
+
+		}
+
+		return $parsed_meta;
+	}
+
 	public function parse_default( $allowed_keyvalue ) {
 		if ( isset( $allowed_keyvalue['default'] ) ) {
 			return $allowed_keyvalue['default'];
@@ -103,8 +126,8 @@ class WOMeta {
 					if ( $empty_text ) :
 						?>
 				<option value=""><?php esc_html_e( $empty_text, $this->text_domain ); ?></option><?php endif; ?>
-					<?php foreach ( $options as $key => $value ) : ?>
-			<option value="<?php esc_attr_e( $key ); ?>"><?php esc_html_e( $value, $this->text_domain ); ?></option>
+					<?php foreach ( $options as $key => $text ) : ?>
+			<option value="<?php esc_attr_e( $key ); ?>" <?php selected( $key, $current_value ); ?>><?php esc_html_e( $text, $this->text_domain ); ?></option>
 			<?php endforeach; ?>
 		</select>
 				<?php
