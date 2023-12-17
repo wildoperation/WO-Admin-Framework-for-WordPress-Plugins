@@ -62,7 +62,7 @@ class WOMeta {
 		switch ( $allowed_keyvalue['type'] ) {
 			case 'bool':
 			case 'int':
-				$value = intval( $input );
+				$value = intval( wp_strip_all_tags( $input ) );
 				break;
 
 			case 'url':
