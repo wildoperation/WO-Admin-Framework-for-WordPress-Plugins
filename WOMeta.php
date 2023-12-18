@@ -20,13 +20,16 @@ class WOMeta {
 
 		foreach ( $allowed_keys as $key => $allowed_keyvalue ) {
 			$full_key = $this->make_key( $key );
-			$value    = null;
+			$value    = $this->parse_default( $allowed_keyvalue );
 
 			if ( isset( $post_meta[ $full_key ] ) ) {
-				$value = $post_meta[ $full_key ];
+				$value         = $post_meta[ $full_key ];
+				$is_type_array = isset( $allowed_keyvalue['type'] ) && $allowed_keyvalue['type'] === 'arr' ? true : false;
 
-				if ( is_array( $value ) && count( $value ) === 1 ) {
+				if ( is_array( $value ) && ! $is_type_array ) {
 					$value = $value[0];
+				} elseif ( $is_type_array && ! is_array( $value ) ) {
+					$value = array( $value );
 				}
 			}
 
@@ -61,8 +64,11 @@ class WOMeta {
 
 		switch ( $allowed_keyvalue['type'] ) {
 			case 'bool':
+				$value = intval( wp_strip_all_tags( $input ) ) > 0 ? 1 : 0;
+				break;
+
 			case 'int':
-				$value = intval( wp_strip_all_tags( $input ) );
+				$value = ( ! $input || $input === null ) ? null : intval( wp_strip_all_tags( $input ) );
 				break;
 
 			case 'url':
@@ -85,7 +91,19 @@ class WOMeta {
 	}
 
 
-	public function save_post_metadata( $post_id, $allowed_keys, $prefix = '_' ) {
+	public function save_posted_metadata( $post, $allowed_keys ) {
+		if ( isset( $post->post_status ) && 'auto-draft' === $post->post_status || 'trash' === $post->post_status ) {
+			return;
+		}
+
+		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+			return;
+		}
+
+		if ( ! isset( $_POST ) || ( isset( $_POST ) && empty( $_POST ) ) ) {
+			return;
+		}
+
 		foreach ( $allowed_keys as $key => $allowed_keyvalue ) {
 			$full_key = $this->make_key( $key );
 
@@ -95,7 +113,7 @@ class WOMeta {
 				$value = $this->parse_default( $allowed_keyvalue );
 			}
 
-			update_post_meta( $post_id, $full_key, $value );
+			update_post_meta( $post->ID, $full_key, $value );
 		}
 	}
 
