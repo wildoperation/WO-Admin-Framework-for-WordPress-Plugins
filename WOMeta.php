@@ -10,20 +10,45 @@ class WOMeta {
 		$this->text_domain = $text_domain;
 	}
 
+	public static function truthy( $value ) {
+		if ( is_bool( $value ) ) {
+			return $value;
+		}
+
+		return intval( $value ) > 0 ? true : false;
+	}
+
+	public function get_value( $array, $key, $default = null ) {
+		if ( isset( $array[ $this->make_key( $key ) ] ) ) {
+			return $array[ $this->make_key( $key ) ];
+		}
+
+		return $default;
+	}
+
 	public function make_key( $key, $prefix = '_' ) {
 		return $prefix . $this->ns . '_' . $key;
 	}
 
 	public function get_post_meta( $post_id, $allowed_keys ) {
-		$post_meta   = get_post_meta( $post_id );
+		$post_meta = get_post_meta( $post_id );
+		return $this->parse_meta( $post_meta, $allowed_keys );
+	}
+
+	public function get_term_meta( $term_id, $allowed_keys ) {
+		$term_meta = get_term_meta( $term_id );
+		return $this->parse_meta( $term_meta, $allowed_keys );
+	}
+
+	public function parse_meta( $meta, $allowed_keys ) {
 		$parsed_meta = array();
 
 		foreach ( $allowed_keys as $key => $allowed_keyvalue ) {
 			$full_key = $this->make_key( $key );
 			$value    = $this->parse_default( $allowed_keyvalue );
 
-			if ( isset( $post_meta[ $full_key ] ) ) {
-				$value         = $post_meta[ $full_key ];
+			if ( isset( $meta[ $full_key ] ) ) {
+				$value         = $meta[ $full_key ];
 				$is_type_array = isset( $allowed_keyvalue['type'] ) && $allowed_keyvalue['type'] === 'arr' ? true : false;
 
 				if ( is_array( $value ) && ! $is_type_array ) {
