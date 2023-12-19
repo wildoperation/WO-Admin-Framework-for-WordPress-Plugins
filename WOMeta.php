@@ -142,69 +142,216 @@ class WOMeta {
 		}
 	}
 
+	public function save_posted_term_metadata( $term_id, $allowed_keys ) {
+		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+			return;
+		}
 
-	public function label( $key, $text, $classes = null ) {
-		?>
-		<label for="<?php esc_attr_e( $this->make_key( $key ) ); ?>"
-								<?php
-								if ( $classes ) :
-									?>
-			class="<?php esc_attr_e( $classes ); ?>"<?php endif; ?>><?php esc_html_e( $text, $this->text_domain ); ?></label>
-				<?php
+		if ( ! $term_id || ! isset( $_POST ) || ( isset( $_POST ) && empty( $_POST ) ) ) {
+			return;
+		}
+
+		foreach ( $allowed_keys as $key => $allowed_keyvalue ) {
+			$full_key = $this->make_key( $key );
+
+			if ( isset( $_POST[ $full_key ] ) ) {
+				$value = $this->sanitize_meta_input( $allowed_keyvalue, $_POST[ $full_key ] );
+			} else {
+				$value = $this->parse_default( $allowed_keyvalue );
+			}
+
+			update_term_meta( $term_id, $full_key, $value );
+		}
 	}
 
-	public function select( $key, $options, $current_value, $empty_text, $classes = '', $id = '' ) {
+	private function maybe_class( $classes = null ) {
+		if ( $classes ) {
+
+			if ( is_array( $classes ) ) {
+				$classes = implode( ' ', $classes );
+			}
+
+			return ' class="' . esc_attr( $classes ) . '"';
+		}
+
+		return '';
+	}
+
+
+	public function label( $key, $text, $args = array() ) {
+		$args = wp_parse_args(
+			$args,
+			array(
+				'classes' => null,
+				'display' => true,
+			)
+		);
+
+		$html  = '<label for="' . esc_attr( $this->make_key( $key ) ) . '"';
+		$html .= $this->maybe_class( $args['classes'] );
+		$html .= '>';
+		$html .= esc_html( $text, $this->text_domain );
+		$html .= '</label>';
+
+		if ( ! $args['display'] ) {
+			return $html;
+		}
+
+		echo $html;
+	}
+
+	public function select( $key, $options, $current_value, $args = array() ) {
+
+		$args = wp_parse_args(
+			$args,
+			array(
+				'classes'    => null,
+				'display'    => true,
+				'id'         => null,
+				'empty_text' => null,
+			)
+		);
+
 		$name = $this->make_key( $key );
 
-		if ( ! $id ) {
-			$id = $name;
+		if ( ! $args['id'] ) {
+			$args['id'] = $name;
 		}
-		?>
-		<select name="<?php esc_attr_e( $name ); ?>" id="<?php esc_attr_e( $id ); ?>" 
-								<?php
-								if ( $classes ) :
-									?>
-			class="<?php esc_attr_e( $classes ); ?>"<?php endif; ?>>
-					<?php
-					if ( $empty_text ) :
-						?>
-				<option value=""><?php esc_html_e( $empty_text, $this->text_domain ); ?></option><?php endif; ?>
-					<?php foreach ( $options as $key => $text ) : ?>
-			<option value="<?php esc_attr_e( $key ); ?>" <?php selected( $key, $current_value ); ?>><?php esc_html_e( $text, $this->text_domain ); ?></option>
-			<?php endforeach; ?>
-		</select>
-				<?php
+
+		$html  = '<select name="' . esc_attr( $name ) . '" id="' . esc_attr( $args['id'] ) . '"';
+		$html .= $this->maybe_class( $args['classes'] );
+		$html .= '>';
+
+		if ( $args['empty_text'] ) {
+			$html .= '<option value="">' . esc_html( $empty_text, $this->text_domain ) . '</option>';
+		}
+
+		foreach ( $options as $option_value => $text ) {
+			$html .= '<option value="' . esc_attr( $option_value ) . '" ' . selected( $option_value, $current_value, false ) . '>' . esc_html( $text, $this->text_domain ) . '</option>';
+		}
+
+		$html .= '</select>';
+
+		if ( ! $args['display'] ) {
+			return $html;
+		}
+
+		echo $html;
 	}
 
-	public function input( $key, $value, $type = 'text', $id = null ) {
+	public function input( $key, $value, $type = 'text', $args = array() ) {
+		$args = wp_parse_args(
+			$args,
+			array(
+				'classes' => null,
+				'display' => true,
+				'id'      => null,
+			)
+		);
+
 		$name = $this->make_key( $key );
 
-		if ( ! $id ) {
-			$id = $name;
+		if ( ! $args['id'] ) {
+			$args['id'] = $name;
 		}
-		?>
-		<input type="<?php esc_attr_e( $type ); ?>" value="<?php esc_attr_e( $value ); ?>" name="<?php esc_attr_e( $name ); ?>" id="<?php esc_attr_e( $id ); ?>" />
-		<?php
+
+		$html  = '<input type="' . esc_attr( $type ) . '" value="' . esc_attr( $value ) . '" name="' . esc_attr( $name ) . '" id="' . esc_attr( $args['id'] ) . '"';
+		$html .= $this->maybe_class( $args['classes'] );
+		$html .= ' />';
+
+		if ( ! $args['display'] ) {
+			return $html;
+		}
+
+		echo $html;
 	}
 
-	public function checkbox( $key, $current_value, $checked_value, $id = null ) {
+	public function checkbox( $key, $current_value, $checked_value, $args = array() ) {
+		$args = wp_parse_args(
+			$args,
+			array(
+				'classes' => null,
+				'display' => true,
+				'id'      => null,
+			)
+		);
+
 		$name = $this->make_key( $key );
 
-		if ( ! $id ) {
-			$id = $name;
+		if ( ! $args['id'] ) {
+			$args['id'] = $name;
 		}
-		?>
-		<input type="checkbox" value="<?php esc_attr_e( $checked_value ); ?>" name="<?php esc_attr_e( $name ); ?>" id="<?php esc_attr_e( $id ); ?>" <?php checked( $checked_value, $current_value ); ?> />
-		<?php
+
+		$html  = '<input type="checkbox" value="' . esc_attr( $checked_value ) . '" name="' . esc_attr( $name ) . '" id="' . esc_attr( $args['id'] ) . '" ' . checked( $checked_value, $current_value, false );
+		$html .= $this->maybe_class( $args['classes'] );
+		$html .= '/>';
+
+		if ( ! $args['display'] ) {
+			return $html;
+		}
+
+		echo $html;
 	}
 
-	public function message( $message, $classes = '' ) {
-		?>
-		<p 
-		<?php
-		if ( $classes ) :
-			?>
-			class="<?php esc_attr_e( $classes ); ?>"<?php endif; ?>><?php esc_html_e( $message, $this->text_domain ); ?></p>
-			<?php
+	public function message( $message, $args = array() ) {
+		$args = wp_parse_args(
+			$args,
+			array(
+				'classes' => null,
+				'display' => true,
+			)
+		);
+
+		$html  = '<p';
+		$html .= $this->maybe_class( $args['classes'] );
+		$html .= '>';
+		$html .= esc_html( $message, $this->text_domain );
+		$html .= '</p>';
+
+		if ( ! $args['display'] ) {
+			return $html;
+		}
+
+		echo $html;
+	}
+
+	public function term_meta_row( $th, $td, $args = array() ) {
+		$args = wp_parse_args(
+			$args,
+			array(
+				'classes' => array(),
+				'display' => true,
+				'message' => null,
+			)
+		);
+
+		if ( $args['classes'] && ! is_array( $args['classes'] ) ) {
+			$args['classes'] = array( $args['classes'] );
+		}
+
+		$args['classes'][] = 'form-field';
+
+		if ( $args['message'] ) {
+			$td .= $this->message(
+				$args['message'],
+				array(
+					'classes' => 'description',
+					'display' => false,
+				)
+			);
+		}
+
+		$html  = '<tr';
+		$html .= $this->maybe_class( $args['classes'] );
+		$html .= '>';
+		$html .= '<th>' . $th . '</th>';
+		$html .= '<td>' . $td . '</td>';
+		$html .= '</tr>';
+
+		if ( ! $args['display'] ) {
+			return $html;
+		}
+
+		echo $html;
 	}
 }
