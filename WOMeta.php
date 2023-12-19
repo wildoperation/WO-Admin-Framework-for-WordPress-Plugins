@@ -10,6 +10,10 @@ class WOMeta {
 		$this->text_domain = $text_domain;
 	}
 
+	public function make_key( $key, $prefix = '_' ) {
+		return $prefix . $this->ns . '_' . $key;
+	}
+
 	public static function truthy( $value ) {
 		if ( is_bool( $value ) ) {
 			return $value;
@@ -19,15 +23,13 @@ class WOMeta {
 	}
 
 	public function get_value( $array, $key, $default = null ) {
-		if ( isset( $array[ $this->make_key( $key ) ] ) ) {
-			return $array[ $this->make_key( $key ) ];
+		$full_key = $this->make_key( $key );
+
+		if ( isset( $array[ $full_key ] ) ) {
+			return $array[ $full_key ];
 		}
 
 		return $default;
-	}
-
-	public function make_key( $key, $prefix = '_' ) {
-		return $prefix . $this->ns . '_' . $key;
 	}
 
 	public function get_post_meta( $post_id, $allowed_keys ) {
@@ -116,19 +118,15 @@ class WOMeta {
 	}
 
 
-	public function save_posted_metadata( $post, $allowed_keys ) {
-		if ( isset( $post->post_status ) && 'auto-draft' === $post->post_status || 'trash' === $post->post_status ) {
-			return;
-		}
-
+	private function is_posted() {
 		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
-			return;
+			return false;
 		}
 
-		if ( ! isset( $_POST ) || ( isset( $_POST ) && empty( $_POST ) ) ) {
-			return;
-		}
+		return isset( $_POST ) && ! empty( $_POST );
+	}
 
+	private function process_posted_meta( $id, $allowed_keys, $context = 'post' ) {
 		foreach ( $allowed_keys as $key => $allowed_keyvalue ) {
 			$full_key = $this->make_key( $key );
 
@@ -138,30 +136,31 @@ class WOMeta {
 				$value = $this->parse_default( $allowed_keyvalue );
 			}
 
-			update_post_meta( $post->ID, $full_key, $value );
+			if ( $context === 'term' ) {
+				update_term_meta( $id, $full_key, $value );
+			} else {
+				update_post_meta( $id, $full_key, $value );
+			}
 		}
 	}
 
+	public function save_posted_metadata( $post, $allowed_keys ) {
+		if ( ! $this->is_posted() ||
+			( isset( $post->post_status ) && ( 'auto-draft' === $post->post_status || 'trash' === $post->post_status ) )
+			) {
+			return;
+		}
+
+		$this->process_posted_meta( $post->ID, $allowed_keys, 'post' );
+	}
+
 	public function save_posted_term_metadata( $term_id, $allowed_keys ) {
-		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+
+		if ( ! $term_id || ! $this->is_posted() ) {
 			return;
 		}
 
-		if ( ! $term_id || ! isset( $_POST ) || ( isset( $_POST ) && empty( $_POST ) ) ) {
-			return;
-		}
-
-		foreach ( $allowed_keys as $key => $allowed_keyvalue ) {
-			$full_key = $this->make_key( $key );
-
-			if ( isset( $_POST[ $full_key ] ) ) {
-				$value = $this->sanitize_meta_input( $allowed_keyvalue, $_POST[ $full_key ] );
-			} else {
-				$value = $this->parse_default( $allowed_keyvalue );
-			}
-
-			update_term_meta( $term_id, $full_key, $value );
-		}
+		$this->process_posted_meta( $term_id, $allowed_keys, 'term' );
 	}
 
 	private function maybe_class( $classes = null ) {
@@ -266,7 +265,7 @@ class WOMeta {
 		echo $html;
 	}
 
-	public function checkbox( $key, $current_value, $checked_value, $args = array() ) {
+	public function checkbox( $key, $current_value, $checked_value = 1, $args = array() ) {
 		$args = wp_parse_args(
 			$args,
 			array(
