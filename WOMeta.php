@@ -328,7 +328,7 @@ class WOMeta {
 			$args['classes'] = array( $args['classes'] );
 		}
 
-		$args['classes'][] = 'form-field';
+		$args['classes'][] = $this->ns . '-form-field form-field';
 
 		if ( $args['message'] ) {
 			$td .= $this->message(
