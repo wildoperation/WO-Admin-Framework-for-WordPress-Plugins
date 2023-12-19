@@ -223,7 +223,7 @@ class WOMeta {
 		$html .= '>';
 
 		if ( $args['empty_text'] ) {
-			$html .= '<option value="">' . esc_html( $empty_text, $this->text_domain ) . '</option>';
+			$html .= '<option value="">' . esc_html( $args['empty_text'], $this->text_domain ) . '</option>';
 		}
 
 		foreach ( $options as $option_value => $text ) {
