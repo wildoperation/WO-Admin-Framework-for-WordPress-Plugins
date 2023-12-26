@@ -4,7 +4,7 @@ namespace WOAdminFramework;
 class WOAdmin {
 
 	protected $text_domain;
-	protected $woforms;
+	public $woforms;
 
 	public function __construct( $text_domain ) {
 		$this->text_domain = $text_domain;
