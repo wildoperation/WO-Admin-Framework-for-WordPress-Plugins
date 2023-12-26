@@ -3,6 +3,14 @@ namespace WOAdminFramework;
 
 class WOAdmin {
 
+	protected $text_domain;
+	protected $woforms;
+
+	public function __construct( $text_domain ) {
+		$this->text_domain = $text_domain;
+		$this->woforms     = new WOForms( $text_domain );
+	}
+
 	private function id( $id ) {
 		if ( is_array( $id ) ) {
 			return $id[ array_key_first( $id ) ];
@@ -92,22 +100,6 @@ class WOAdmin {
 		<?php
 	}
 
-	public function select( $id, $options, $current = null, $default = null ) {
-		$name = $this->name( $id );
-		$id   = $this->id( $id );
-
-		if ( ! $current ) {
-			$current = $default;
-		}
-		?>
-		<select id="<?php esc_attr_e( $id ); ?>" name="<?php esc_attr_e( $name ); ?>">
-			<?php foreach ( $options as $key => $value ) : ?>
-				<option value="<?php esc_attr_e( $key ); ?>"<?php selected( esc_attr( $key ), $current ); ?>><?php esc_html_e( $value ); ?></option>
-			<?php endforeach; ?>
-		</select>
-		<?php
-	}
-
 	public function settings_page( $admin_title, $admin_action, $admin_url, $settings, $options_framework ) {
 		$this->start();
 		$this->title( $admin_title );
@@ -137,5 +129,35 @@ class WOAdmin {
 		submit_button();
 		$this->form_end();
 		$this->end();
+	}
+
+	public function label( $id, $text, $args = array() ) {
+		$id = $this->id( $id );
+		return $this->woforms->label( $id, $text, $args );
+	}
+
+	public function select( $id, $options, $current_value = null, $args = array() ) {
+		$name       = $this->name( $id );
+		$args['id'] = $this->id( $id );
+
+		if ( ! $current_value && isset( $args['default'] ) ) {
+			$current_value = $args['default'];
+		}
+
+		return $this->woforms->select( $name, $options, $current_value, $args );
+	}
+
+	public function checkbox( $id, $current_value, $checked_value = 1, $args = array() ) {
+		$name       = $this->name( $id );
+		$args['id'] = $this->id( $id );
+
+		return $this->woforms->checkbox( $name, $current_value, $checked_value, $args );
+	}
+
+	public function input( $id, $value, $type = 'text', $args = array() ) {
+		$name       = $this->name( $id );
+		$args['id'] = $this->id( $id );
+
+		return $this->woforms->input( $name, $value, $type, $args );
 	}
 }

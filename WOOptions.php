@@ -70,28 +70,39 @@ class WOOptions {
 		foreach ( $settings as $key => $group ) {
 			$this->initialize( $key );
 
+			/**
+			 * This is the overall group
+			 * It's a tab, and also the option key for the DB
+			 */
 			$opt_key    = $this->key( $key );
 			$section_id = $opt_key . '_settings_section';
 
-			add_settings_section(
-				$section_id,
-				$group['title'],
-				array( &$class_instance, $opt_key . '_settings_callback' ),
-				$opt_key
-			);
+			foreach ( $group['sections'] as $section_key => $section ) {
+				$section_key = $this->key( $section_key );
 
-			/**
-			 * Add fields
-			 */
-			if ( isset( $group['fields'] ) && ! empty( $group['fields'] ) ) {
-				foreach ( $group['fields'] as $field_key => $field_title ) {
-					add_settings_field(
-						$field_key,
-						$field_title,
-						array( &$class_instance, 'field_wgs_' . $field_key ),
-						$opt_key,
-						$section_id
-					);
+				/**
+				 * These are sub-sections within the option group
+				 */
+				add_settings_section(
+					$section_key . '_settings_section',
+					isset( $section['title'] ) ? $section['title'] : null,
+					array( &$class_instance, 'settings_callback_' . $section_key ),
+					$opt_key
+				);
+
+				/**
+				 * Add fields
+				 */
+				if ( isset( $section['fields'] ) && ! empty( $section['fields'] ) ) {
+					foreach ( $section['fields'] as $field_key => $value ) {
+						add_settings_field(
+							$field_key,
+							$value,
+							array( &$class_instance, 'field_' . $this->ns . '_' . $field_key ),
+							$opt_key,
+							$section_key . '_settings_section'
+						);
+					}
 				}
 			}
 		}

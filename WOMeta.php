@@ -4,10 +4,13 @@ namespace WOAdminFramework;
 class WOMeta {
 	private $ns;
 	private $text_domain;
+	private $woforms;
 
 	public function __construct( $ns, $text_domain = 'default' ) {
 		$this->ns          = $ns;
 		$this->text_domain = $text_domain;
+
+		$this->woforms = new WOForms( $text_domain );
 	}
 
 	public function make_key( $key, $prefix = '_' ) {
@@ -163,155 +166,24 @@ class WOMeta {
 		$this->process_posted_meta( $term_id, $allowed_keys, 'term' );
 	}
 
-	private function maybe_class( $classes = null ) {
-		if ( $classes ) {
-
-			if ( is_array( $classes ) ) {
-				$classes = implode( ' ', $classes );
-			}
-
-			return ' class="' . esc_attr( $classes ) . '"';
-		}
-
-		return '';
-	}
-
-
 	public function label( $key, $text, $args = array() ) {
-		$args = wp_parse_args(
-			$args,
-			array(
-				'classes' => null,
-				'display' => true,
-			)
-		);
-
-		$html  = '<label for="' . esc_attr( $this->make_key( $key ) ) . '"';
-		$html .= $this->maybe_class( $args['classes'] );
-		$html .= '>';
-		$html .= esc_html( $text, $this->text_domain );
-		$html .= '</label>';
-
-		if ( ! $args['display'] ) {
-			return $html;
-		}
-
-		echo $html;
+		return $this->woforms->label( $this->make_key( $key ), $text, $args );
 	}
 
-	public function select( $key, $options, $current_value, $args = array() ) {
-
-		$args = wp_parse_args(
-			$args,
-			array(
-				'classes'    => null,
-				'display'    => true,
-				'id'         => null,
-				'empty_text' => null,
-			)
-		);
-
-		$name = $this->make_key( $key );
-
-		if ( ! $args['id'] ) {
-			$args['id'] = $name;
-		}
-
-		$html  = '<select name="' . esc_attr( $name ) . '" id="' . esc_attr( $args['id'] ) . '"';
-		$html .= $this->maybe_class( $args['classes'] );
-		$html .= '>';
-
-		if ( $args['empty_text'] ) {
-			$html .= '<option value="">' . esc_html( $args['empty_text'], $this->text_domain ) . '</option>';
-		}
-
-		foreach ( $options as $option_value => $text ) {
-			$html .= '<option value="' . esc_attr( $option_value ) . '" ' . selected( $option_value, $current_value, false ) . '>' . esc_html( $text, $this->text_domain ) . '</option>';
-		}
-
-		$html .= '</select>';
-
-		if ( ! $args['display'] ) {
-			return $html;
-		}
-
-		echo $html;
+	public function select( $key, $options, $current_value = null, $args = array() ) {
+		return $this->woforms->select( $this->make_key( $key ), $options, $current_value, $args );
 	}
 
 	public function input( $key, $value, $type = 'text', $args = array() ) {
-		$args = wp_parse_args(
-			$args,
-			array(
-				'classes' => null,
-				'display' => true,
-				'id'      => null,
-			)
-		);
-
-		$name = $this->make_key( $key );
-
-		if ( ! $args['id'] ) {
-			$args['id'] = $name;
-		}
-
-		$html  = '<input type="' . esc_attr( $type ) . '" value="' . esc_attr( $value ) . '" name="' . esc_attr( $name ) . '" id="' . esc_attr( $args['id'] ) . '"';
-		$html .= $this->maybe_class( $args['classes'] );
-		$html .= ' />';
-
-		if ( ! $args['display'] ) {
-			return $html;
-		}
-
-		echo $html;
+		return $this->woforms->input( $this->make_key( $key ), $value, $type, $args );
 	}
 
 	public function checkbox( $key, $current_value, $checked_value = 1, $args = array() ) {
-		$args = wp_parse_args(
-			$args,
-			array(
-				'classes' => null,
-				'display' => true,
-				'id'      => null,
-			)
-		);
-
-		$name = $this->make_key( $key );
-
-		if ( ! $args['id'] ) {
-			$args['id'] = $name;
-		}
-
-		$html  = '<input type="checkbox" value="' . esc_attr( $checked_value ) . '" name="' . esc_attr( $name ) . '" id="' . esc_attr( $args['id'] ) . '" ' . checked( $checked_value, $current_value, false );
-		$html .= $this->maybe_class( $args['classes'] );
-		$html .= '/>';
-
-		if ( ! $args['display'] ) {
-			return $html;
-		}
-
-		echo $html;
+		return $this->woforms->checkbox( $this->make_key( $key ), $current_value, $checked_value, $args );
 	}
 
 	public function message( $message, $args = array() ) {
-		$args = wp_parse_args(
-			$args,
-			array(
-				'classes' => null,
-				'display' => true,
-			)
-		);
-
-		$html  = '<p';
-		$html .= $this->maybe_class( $args['classes'] );
-		$html .= '>';
-		$html .= esc_html( $message, $this->text_domain );
-		$html .= '</p>';
-
-		if ( ! $args['display'] ) {
-			return $html;
-		}
-
-		echo $html;
+		return $this->woforms->message( $message, $args );
 	}
 
 	public function term_meta_row( $th, $td, $args = array() ) {
@@ -341,7 +213,7 @@ class WOMeta {
 		}
 
 		$html  = '<tr';
-		$html .= $this->maybe_class( $args['classes'] );
+		$html .= $this->woforms->maybe_class( $args['classes'] );
 		$html .= '>';
 		$html .= '<th>' . $th . '</th>';
 		$html .= '<td>' . $td . '</td>';
