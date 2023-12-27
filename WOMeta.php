@@ -92,24 +92,7 @@ class WOMeta {
 			$allowed_keyvalue['type'] = 'str';
 		}
 
-		switch ( $allowed_keyvalue['type'] ) {
-			case 'bool':
-				$value = intval( wp_strip_all_tags( $input ) ) > 0 ? 1 : 0;
-				break;
-
-			case 'int':
-				$value = ( ! $input || $input === null ) ? null : intval( wp_strip_all_tags( $input ) );
-				break;
-
-			case 'url':
-				$value = sanitize_url( wp_strip_all_tags( $input ) );
-				break;
-
-			case 'str':
-			default:
-				$value = sanitize_text_field( $input );
-				break;
-		}
+		$value = WOAdmin::sanitize_by_type( $input, $allowed_keyvalue['type'] );
 
 		if ( $value !== null && isset( $allowed_keyvalue['restricted'] ) ) {
 			if ( ! in_array( $value, $allowed_keyvalue['restricted'] ) ) {

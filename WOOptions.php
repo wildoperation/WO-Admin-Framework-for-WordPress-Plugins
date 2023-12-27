@@ -49,7 +49,7 @@ class WOOptions {
 			return null;
 		}
 
-		return esc_url_raw( wp_strip_all_tags( stripslashes( $value ) ) );
+		return sanitize_text_field( $value );
 	}
 
 	public function sanitize_input_basic( $input, $capability ) {
@@ -59,8 +59,10 @@ class WOOptions {
 
 		$output = array();
 
-		foreach ( $input as $key => $value ) {
-			$output[ $key ] = $this->sanitize_default( $input[ $key ] );
+		if ( $input ) {
+			foreach ( $input as $key => $value ) {
+				$output[ $key ] = $this->sanitize_default( $value );
+			}
 		}
 
 		return $output;
@@ -74,8 +76,7 @@ class WOOptions {
 			 * This is the overall group
 			 * It's a tab, and also the option key for the DB
 			 */
-			$opt_key    = $this->key( $key );
-			$section_id = $opt_key . '_settings_section';
+			$opt_key = $this->key( $key );
 
 			foreach ( $group['sections'] as $section_key => $section ) {
 				$section_key = $this->key( $section_key );
