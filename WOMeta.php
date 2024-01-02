@@ -1,5 +1,5 @@
 <?php
-namespace WOAdminFramework;
+namespace WOWPAds\Vendor\WOAdminFramework;
 
 class WOMeta {
 	private $ns;
@@ -113,11 +113,16 @@ class WOMeta {
 	}
 
 	private function process_posted_meta( $id, $allowed_keys, $context = 'post' ) {
+
 		foreach ( $allowed_keys as $key => $allowed_keyvalue ) {
 			$full_key = $this->make_key( $key );
 
+			$value = null;
+
 			if ( isset( $_POST[ $full_key ] ) ) {
 				$value = $this->sanitize_meta_input( $allowed_keyvalue, $_POST[ $full_key ] );
+			} elseif ( isset( $allowed_keyvalue['type'] ) && $allowed_keyvalue['type'] === 'bool' ) {
+				$value = 0;
 			} else {
 				$value = $this->parse_default( $allowed_keyvalue );
 			}
