@@ -3,26 +3,15 @@ namespace WOAdminFramework;
 
 class WOMeta {
 	private $ns;
-	private $text_domain;
 	private $woforms;
 
 	public function __construct( $ns, $text_domain = 'default' ) {
-		$this->ns          = $ns;
-		$this->text_domain = $text_domain;
-
+		$this->ns      = $ns;
 		$this->woforms = new WOForms( $text_domain );
 	}
 
 	public function make_key( $key, $prefix = '_' ) {
 		return $prefix . $this->ns . '_' . $key;
-	}
-
-	public static function truthy( $value ) {
-		if ( is_bool( $value ) ) {
-			return $value;
-		}
-
-		return intval( $value ) > 0 ? true : false;
 	}
 
 	public function get_value( $array, $key, $default = null ) {
@@ -168,6 +157,10 @@ class WOMeta {
 
 	public function checkbox( $key, $current_value, $checked_value = 1, $args = array() ) {
 		return $this->woforms->checkbox( $this->make_key( $key ), $current_value, $checked_value, $args );
+	}
+
+	public function radiogroup( $key, $radios, $current_value = null, $args = array() ) {
+		return $this->woforms->radiogroup( $this->make_key( $key ), $radios, $current_value, $args );
 	}
 
 	public function message( $message, $args = array() ) {

@@ -130,6 +130,50 @@ class WOForms {
 		echo $html;
 	}
 
+	public function radiogroup( $name, $radios, $current_value, $args = array() ) {
+
+		$args = wp_parse_args(
+			$args,
+			array(
+				'classes'    => null,
+				'display'    => true,
+				'id'         => null,
+				'empty_text' => null,
+				'wrap'       => true,
+			)
+		);
+
+		if ( ! $args['id'] ) {
+			$args['id'] = $name;
+		}
+
+		if ( $args['classes'] && ! $args['wrap'] ) {
+			$args['wrap'] = true;
+		}
+
+		$html = '';
+		$idx  = 1;
+
+		foreach ( $radios as $value => $text ) {
+			$id = $args['id'] . '_' . $idx;
+
+			$html .= '<input type="radio" id="' . esc_attr( $id ) . '" name="' . esc_attr( $name ) . '" value="' . esc_attr( $value ) . '"' . checked( $value, $current_value, false ) . ' />';
+			$html .= $this->label( $id, $text, array( 'display' => false ) );
+
+			++$idx;
+		}
+
+		if ( $args['wrap'] ) {
+			$html = '<div' . $this->maybe_class( $args['classes'] ) . '>' . $html . '</div>';
+		}
+
+		if ( ! $args['display'] ) {
+			return $html;
+		}
+
+		echo $html;
+	}
+
 	public function message( $message, $args = array() ) {
 		$args = wp_parse_args(
 			$args,
