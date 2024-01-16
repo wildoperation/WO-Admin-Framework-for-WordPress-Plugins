@@ -213,6 +213,13 @@ class WOSettings extends WOOPtions {
 		return $this->woforms->checkbox( $name, $current_value, $checked_value, $args );
 	}
 
+	public function textarea( $id, $value, $args = array() ) {
+		$name       = $this->name( $id );
+		$args['id'] = $this->id( $id );
+
+		return $this->woforms->textarea( $name, $value, $args );
+	}
+
 	public function input( $id, $value, $type = 'text', $args = array() ) {
 		$name       = $this->name( $id );
 		$args['id'] = $this->id( $id );

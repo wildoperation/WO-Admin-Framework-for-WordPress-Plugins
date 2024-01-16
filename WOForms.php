@@ -105,6 +105,33 @@ class WOForms {
 		echo $html;
 	}
 
+	public function textarea( $name, $value, $args = array() ) {
+		$args = wp_parse_args(
+			$args,
+			array(
+				'classes' => null,
+				'display' => true,
+				'id'      => null,
+				'rows'    => 10,
+				'cols'    => 90,
+			)
+		);
+
+		if ( ! $args['id'] ) {
+			$args['id'] = $name;
+		}
+
+		$html  = '<textarea name="' . esc_attr( $name ) . '" id="' . esc_attr( $args['id'] ) . '" rows="' . esc_attr( $args['rows'] ) . '" cols="' . esc_attr( $args['cols'] ) . '"';
+		$html .= $this->maybe_class( $args['classes'] );
+		$html .= '>' . $value . '</textarea>';
+
+		if ( ! $args['display'] ) {
+			return $html;
+		}
+
+		echo $html;
+	}
+
 	public function checkbox( $name, $current_value, $checked_value = 1, $args = array() ) {
 		$args = wp_parse_args(
 			$args,

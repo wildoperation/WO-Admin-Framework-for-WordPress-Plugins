@@ -18,17 +18,28 @@ class WOOptions {
 		return $this->ns() . $key;
 	}
 
-	public function refresh( $group, $default = array() ) {
-		$this->options[ $group ] = get_option( $this->key( $group ), $default );
+	public function refresh( $key, $default = array() ) {
+		$this->options[ $key ] = get_option( $this->key( $key ), $default );
 	}
 
-	public function get( $option, $group, $default = null ) {
-		if ( ! isset( $this->options[ $group ] ) ) {
-			$this->refresh( $group );
-		}
+	public function get( $option, $group = null, $default = null ) {
 
-		if ( isset( $this->options[ $group ][ $option ] ) ) {
-			return $this->options[ $group ][ $option ];
+		if ( $group !== null ) {
+			if ( ! isset( $this->options[ $group ] ) ) {
+				$this->refresh( $group );
+			}
+
+			if ( isset( $this->options[ $group ][ $option ] ) ) {
+				return $this->options[ $group ][ $option ];
+			}
+		} else {
+			if ( ! isset( $this->options[ $option ] ) ) {
+				$this->refresh( $option );
+			}
+
+			if ( isset( $this->options[ $option ] ) ) {
+				return $this->options[ $option ];
+			}
 		}
 
 		return $default;

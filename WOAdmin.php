@@ -36,6 +36,10 @@ class WOAdmin {
 				$value = sanitize_url( wp_strip_all_tags( $input ) );
 				break;
 
+			case 'textarea':
+				$value = sanitize_textarea_field( $input );
+				break;
+
 			case 'str':
 			default:
 				$value = sanitize_text_field( $input );
