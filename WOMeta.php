@@ -4,6 +4,7 @@ namespace WOAdminFramework;
 class WOMeta {
 	private $ns;
 	private $woforms;
+	private $assets_url;
 
 	public function __construct( $ns, $text_domain = 'default' ) {
 		$this->ns      = $ns;
@@ -52,7 +53,7 @@ class WOMeta {
 				}
 			}
 
-			$parsed_meta[ $full_key ] = $value;
+			$parsed_meta[ $full_key ] = maybe_unserialize( $value );
 
 		}
 
@@ -103,6 +104,7 @@ class WOMeta {
 
 	private function process_posted_meta( $id, $allowed_keys, $context = 'post' ) {
 
+		wo_log( $_POST );
 		foreach ( $allowed_keys as $key => $allowed_keyvalue ) {
 			$full_key = $this->make_key( $key );
 
@@ -126,8 +128,8 @@ class WOMeta {
 
 	public function save_posted_metadata( $post, $allowed_keys ) {
 		if ( ! $this->is_posted() ||
-			( isset( $post->post_status ) && ( 'auto-draft' === $post->post_status || 'trash' === $post->post_status ) )
-			) {
+		( isset( $post->post_status ) && ( 'auto-draft' === $post->post_status || 'trash' === $post->post_status ) )
+		) {
 			return;
 		}
 
@@ -167,6 +169,27 @@ class WOMeta {
 		return $this->woforms->message( $message, $args );
 	}
 
+	protected function assets_url() {
+		if ( ! $this->assets_url ) {
+			$this->assets_url = plugin_dir_url( __FILE__ ) . '/dist/';
+		}
+
+		return $this->assets_url;
+	}
+
+	public function enqueue_styles() {
+		wp_enqueue_style( 'wowmeta-css', $this->assets_url() . 'css/admin.css', array(), '1.0.0' );
+	}
+
+	public function repeater_enqueue() {
+		$this->enqueue_styles();
+
+		wp_enqueue_script( 'jquery' );
+
+		wp_register_script( 'wometa-repeater', $this->assets_url() . 'js/repeater.js', array( 'jquery', 'jquery-ui-core', 'jquery-ui-sortable' ), '1.0.0', array( 'in_footer' => true ) );
+		wp_enqueue_script( 'wometa-repeater' );
+	}
+
 	public function term_meta_row( $th, $td, $args = array() ) {
 		$args = wp_parse_args(
 			$args,
@@ -199,6 +222,175 @@ class WOMeta {
 		$html .= '<th>' . $th . '</th>';
 		$html .= '<td>' . $td . '</td>';
 		$html .= '</tr>';
+
+		if ( ! $args['display'] ) {
+			return $html;
+		}
+
+		echo $html;
+	}
+
+	public function repeater_start( $columns = array(), $args = array() ) {
+		$args = wp_parse_args(
+			$args,
+			array(
+				'classes'         => array(),
+				'display'         => false,
+				'width'           => '100%',
+				'controls_column' => '',
+			)
+		);
+
+		if ( $args['classes'] && ! is_array( $args['classes'] ) ) {
+			$args['classes'] = array( $args['classes'] );
+		}
+
+		$args['classes'][] = $this->ns . '-repeater';
+
+		$html = '<table';
+
+		if ( $args['width'] ) {
+			$html .= ' width="' . esc_attr( $args['width'] ) . '"';
+		}
+
+		$html .= $this->woforms->maybe_class( $args['classes'] );
+		$html .= '>';
+
+		if ( ! empty( $columns ) ) {
+			$html .= '<thead><tr>';
+
+			foreach ( $columns as $column ) {
+				$width = null;
+				$text  = '';
+
+				if ( is_array( $column ) ) {
+					$width = ( isset( $column['width'] ) ) ? $column['width'] : null;
+					$text  = ( isset( $column['text'] ) ) ? $column['text'] : '';
+				} else {
+					$text = $column;
+				}
+
+				$html .= '<th';
+				if ( $width ) {
+					$html .= ' width="' . esc_attr( $width ) . '"';
+				}
+				$html .= '>';
+
+				if ( $text ) {
+					$html .= esc_html( $text );
+				}
+
+				$html .= '</th>';
+			}
+
+			if ( $args['controls_column'] !== false ) {
+				$html .= '<th>' . esc_attr( $args['controls_column'] ) . '</th>';
+			}
+
+			$html .= '</tr></thead>';
+		}
+
+		$html .= '<tbody>';
+
+		if ( ! $args['display'] ) {
+			return $html;
+		}
+
+		echo $html;
+	}
+
+	public function repeater_end( $args = array() ) {
+		$args = wp_parse_args(
+			$args,
+			array(
+				'display' => false,
+			)
+		);
+
+		$html = '</tbody></table>';
+
+		if ( ! $args['display'] ) {
+			return $html;
+		}
+
+		echo $html;
+	}
+
+	public function repeater_row( $cells = array(), $args = array() ) {
+
+		$args = wp_parse_args(
+			$args,
+			array(
+				'display'         => false,
+				'controls_column' => true,
+			)
+		);
+
+		$html = '<tr class="wometa-repeater-row">';
+
+		if ( ! empty( $cells ) ) {
+			foreach ( $cells as $cell ) {
+				$html .= $this->repeater_cell( $cell );
+			}
+
+			if ( $args['controls_column'] ) {
+				$html .= '<td class="' . esc_attr( $this->ns . '-wometa-repeater-controls wometa-repeater-controls' ) . '">';
+				$html .= '<button class="' . esc_attr( 'wometa-repeater-controls--remove' ) . '">&ndash;</button>';
+				$html .= '<button class="' . esc_attr( 'wometa-repeater-controls--add' ) . '">+</button>';
+				$html .= '</td>';
+			}
+		}
+
+		$html .= '</tr>';
+
+		if ( ! $args['display'] ) {
+			return $html;
+		}
+
+		echo $html;
+	}
+
+	public function repeater_cell( $contents = '', $args = array() ) {
+		$args = wp_parse_args(
+			$args,
+			array(
+				'display' => false,
+			)
+		);
+
+		$html = '<td>' . $contents . '</td>';
+
+		if ( ! $args['display'] ) {
+			return $html;
+		}
+
+		echo $html;
+	}
+
+	/**
+	 * $rows Array An array of arrays; Individual table cells contained in each row
+	 */
+	public function repeater_table( $columns = array(), $rows = array(), $args = array() ) {
+		$args = wp_parse_args(
+			$args,
+			array(
+				'classes'         => array(),
+				'display'         => true,
+				'width'           => '100%',
+				'controls_column' => '',
+			)
+		);
+
+		$table_start_args            = $args;
+		$table_start_args['display'] = false;
+
+		$html = $this->repeater_start( $columns, $table_start_args );
+
+		foreach ( $rows as $cells ) {
+			$html .= $this->repeater_row( $cells );
+		}
+
+		$html .= $this->repeater_end();
 
 		if ( ! $args['display'] ) {
 			return $html;

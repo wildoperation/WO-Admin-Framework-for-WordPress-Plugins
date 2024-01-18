@@ -22,7 +22,7 @@ class WOAdmin {
 		}
 	}
 
-	public static function sanitize_by_type( $input, $type = 'str' ) {
+	private static function do_sanitize_by_type( $input, $type ) {
 		switch ( $type ) {
 			case 'bool':
 				$value = intval( wp_strip_all_tags( $input ) ) > 0 ? 1 : 0;
@@ -44,6 +44,24 @@ class WOAdmin {
 			default:
 				$value = sanitize_text_field( $input );
 				break;
+		}
+
+		return $value;
+	}
+
+	public static function sanitize_by_type( $input, $type = 'str' ) {
+		if ( is_array( $input ) ) {
+			$value = array();
+
+			foreach ( $input as $i ) {
+				if ( empty( $i ) ) {
+					continue;
+				}
+
+				$value[] = self::do_sanitize_by_type( $i, $type );
+			}
+		} else {
+			$value = self::do_sanitize_by_type( $input, $type );
 		}
 
 		return $value;

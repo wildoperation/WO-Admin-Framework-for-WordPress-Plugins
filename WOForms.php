@@ -205,15 +205,16 @@ class WOForms {
 		$args = wp_parse_args(
 			$args,
 			array(
-				'classes' => null,
-				'display' => true,
+				'classes'      => null,
+				'display'      => true,
+				'allowed_html' => wp_kses_allowed_html( 'post' ),
 			)
 		);
 
 		$html  = '<p';
 		$html .= $this->maybe_class( $args['classes'] );
 		$html .= '>';
-		$html .= esc_html( $message, $this->text_domain );
+		$html .= __( wp_kses( $message, $args['allowed_html'] ), $this->text_domain );
 		$html .= '</p>';
 
 		if ( ! $args['display'] ) {
