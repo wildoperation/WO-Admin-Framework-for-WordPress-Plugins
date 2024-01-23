@@ -1,5 +1,5 @@
 <?php
-namespace WOAdminFramework;
+namespace WOWPAds\Vendor\WOAdminFramework;
 
 class WOForms {
 	protected $text_domain;
@@ -68,7 +68,22 @@ class WOForms {
 		}
 
 		foreach ( $options as $option_value => $text ) {
-			$html .= '<option value="' . esc_attr( $option_value ) . '" ' . selected( $option_value, $current_value, false ) . '>' . esc_html( $text, $this->text_domain ) . '</option>';
+			$disabled = false;
+
+			if ( substr( $option_value, 0, 9 ) === 'disabled:' ) {
+				$disabled     = true;
+				$option_value = '';
+			}
+
+			$html .= '<option value="' . esc_attr( $option_value ) . '" ';
+
+			if ( $disabled ) {
+				$html .= 'disabled="true"';
+			} else {
+				$html .= selected( $option_value, $current_value, false );
+			}
+
+			$html .= '>' . esc_html( $text, $this->text_domain ) . '</option>';
 		}
 
 		$html .= '</select>';
@@ -84,9 +99,10 @@ class WOForms {
 		$args = wp_parse_args(
 			$args,
 			array(
-				'classes' => null,
-				'display' => true,
-				'id'      => null,
+				'classes'     => null,
+				'display'     => true,
+				'id'          => null,
+				'placeholder' => null,
 			)
 		);
 
@@ -96,6 +112,11 @@ class WOForms {
 
 		$html  = '<input type="' . esc_attr( $type ) . '" value="' . esc_attr( $value ) . '" name="' . esc_attr( $name ) . '" id="' . esc_attr( $args['id'] ) . '"';
 		$html .= $this->maybe_class( $args['classes'] );
+
+		if ( $args['placeholder'] ) {
+			$html .= ' placeholder="' . esc_attr( $args['placeholder'] ) . '"';
+		}
+
 		$html .= ' />';
 
 		if ( ! $args['display'] ) {
@@ -157,7 +178,11 @@ class WOForms {
 		echo $html;
 	}
 
-	public function radiogroup( $name, $radios, $current_value, $args = array() ) {
+	public function inputgroup( $name, $options, $current_value, $type = 'radio', $args = array() ) {
+
+		if ( empty( $options ) ) {
+			return '';
+		}
 
 		$args = wp_parse_args(
 			$args,
@@ -171,20 +196,42 @@ class WOForms {
 		);
 
 		if ( ! $args['id'] ) {
-			$args['id'] = $name;
+			$args['id'] = str_replace( '[]', '', $name );
 		}
 
 		if ( $args['classes'] && ! $args['wrap'] ) {
 			$args['wrap'] = true;
 		}
 
+		if ( $type === 'checkbox' ) {
+			if ( $current_value === null || $current_value === false ) {
+				$current_value = array();
+			}
+
+			if ( ! is_array( $current_value ) ) {
+				$current_value = array( $current_value );
+			}
+
+			if ( substr( $name, -2 ) !== '[]' ) {
+				$name .= '[]';
+			}
+		}
+
 		$html = '';
 		$idx  = 1;
 
-		foreach ( $radios as $value => $text ) {
+		foreach ( $options as $value => $text ) {
 			$id = $args['id'] . '_' . $idx;
 
-			$html .= '<input type="radio" id="' . esc_attr( $id ) . '" name="' . esc_attr( $name ) . '" value="' . esc_attr( $value ) . '"' . checked( $value, $current_value, false ) . ' />';
+			$html .= '<input type="' . esc_attr( $type ) . '" id="' . esc_attr( $id ) . '" name="' . esc_attr( $name ) . '" value="' . esc_attr( $value ) . '"';
+
+			if ( $type === 'radio' ) {
+				$html .= checked( $value, $current_value, false );
+			} else {
+				$html .= checked( true, in_array( $value, $current_value ), false );
+			}
+
+			$html .= ' />';
 			$html .= $this->label( $id, $text, array( 'display' => false ) );
 
 			++$idx;

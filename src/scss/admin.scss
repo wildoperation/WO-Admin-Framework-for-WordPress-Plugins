@@ -1,0 +1,63 @@
+$speed: 100ms;
+$ease: ease-in-out;
+
+.wometa-repeater-sort-icon {
+	cursor: grab;
+	display: inline-block;
+	opacity: 0.15;
+	margin-right: 5px;
+	width: auto;
+	height: 16px;
+}
+
+.wometa-repeater-row {
+	td {
+		padding: 5px;
+
+		&.wometa-repeater-sort {
+			padding-left: 0;
+		}
+
+		input,
+		select {
+			width: 100%;
+		}
+	}
+}
+
+.wowpads-wometa-repeater-controls {
+	line-height: 1;
+	button {
+		cursor: pointer;
+		display: inline-block;
+		outline: none;
+		padding: 0;
+		margin-left: 5px;
+		background: none;
+		box-shadow: none;
+		opacity: 0.75;
+		transition:
+			opacity $speed $ease,
+			transform $speed $ease;
+		border: 1px solid #000;
+		border-radius: 50%;
+		line-height: 1;
+		min-height: 20px;
+		min-width: 20px;
+
+		&:hover {
+			opacity: 1;
+			transform: scale(1.1);
+		}
+
+		&:disabled {
+			cursor: default;
+			opacity: 0.1;
+		}
+	}
+
+	.wometa-repeater-controls--remove {
+		border-color: #ac0101;
+		color: #ac0101;
+	}
+}

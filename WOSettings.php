@@ -1,7 +1,7 @@
 <?php
-namespace WOAdminFramework;
+namespace WOWPAds\Vendor\WOAdminFramework;
 
-use WOAdminFramework\WOOptions;
+use WOWPAds\Vendor\WOAdminFramework\WOOptions;
 
 class WOSettings extends WOOPtions {
 
@@ -154,7 +154,7 @@ class WOSettings extends WOOPtions {
 				add_settings_section(
 					$section_key . '_settings_section',
 					isset( $section['title'] ) ? $section['title'] : null,
-					array( &$class_instance, 'settings_callback_' . $section_key ),
+					array( $class_instance, 'settings_callback_' . $section_key ),
 					$opt_key
 				);
 
@@ -166,7 +166,7 @@ class WOSettings extends WOOPtions {
 						add_settings_field(
 							$field_key,
 							$value,
-							array( &$class_instance, 'field_' . $this->ns . '_' . $field_key ),
+							array( $class_instance, 'field_' . $this->ns . '_' . $field_key ),
 							$opt_key,
 							$section_key . '_settings_section'
 						);
@@ -184,7 +184,7 @@ class WOSettings extends WOOPtions {
 				$key,
 				$key,
 				array(
-					'sanitize_callback' => array( &$class_instance, 'sanitize_' . $key ),
+					'sanitize_callback' => array( $class_instance, 'sanitize_' . $key ),
 				),
 			);
 		}

@@ -1,5 +1,5 @@
 <?php
-namespace WOAdminFramework;
+namespace WOWPAds\Vendor\WOAdminFramework;
 
 class WOAdmin {
 	public function authorize_action( $action_nonce, $nonce_key, $capability, $required_post = array() ) {
@@ -24,6 +24,18 @@ class WOAdmin {
 
 	private static function do_sanitize_by_type( $input, $type ) {
 		switch ( $type ) {
+			case 'date':
+				$input  = sanitize_text_field( $input );
+				$format = 'F j, Y';
+				$date   = \DateTime::createFromFormat( $format, $input );
+
+				if ( $date && $date->format( $format ) ) {
+					$value = $date->format( $format );
+				} else {
+					$value = null;
+				}
+
+				break;
 			case 'bool':
 				$value = intval( wp_strip_all_tags( $input ) ) > 0 ? 1 : 0;
 				break;

@@ -1,5 +1,5 @@
 <?php
-namespace WOAdminFramework;
+namespace WOWPAds\Vendor\WOAdminFramework;
 
 class WOMeta {
 	private $ns;
@@ -104,8 +104,11 @@ class WOMeta {
 
 	private function process_posted_meta( $id, $allowed_keys, $context = 'post' ) {
 
-		wo_log( $_POST );
 		foreach ( $allowed_keys as $key => $allowed_keyvalue ) {
+			if ( isset( $allowed_keyvalue['ignore_post'] ) && $allowed_keyvalue['ignore_post'] === true ) {
+				continue;
+			}
+
 			$full_key = $this->make_key( $key );
 
 			$value = null;
@@ -124,6 +127,10 @@ class WOMeta {
 				update_post_meta( $id, $full_key, $value );
 			}
 		}
+	}
+
+	public function update_post_meta( $id, $key, $value ) {
+		return update_post_meta( $id, $this->make_key( $key ), $value );
 	}
 
 	public function save_posted_metadata( $post, $allowed_keys ) {
@@ -161,8 +168,12 @@ class WOMeta {
 		return $this->woforms->checkbox( $this->make_key( $key ), $current_value, $checked_value, $args );
 	}
 
+	public function checkgroup( $key, $checkboxes, $current_values = array(), $args = array() ) {
+		return $this->woforms->inputgroup( $this->make_key( $key ), $checkboxes, $current_values, 'checkbox', $args );
+	}
+
 	public function radiogroup( $key, $radios, $current_value = null, $args = array() ) {
-		return $this->woforms->radiogroup( $this->make_key( $key ), $radios, $current_value, $args );
+		return $this->woforms->inputgroup( $this->make_key( $key ), $radios, $current_value, 'radio', $args );
 	}
 
 	public function message( $message, $args = array() ) {
@@ -171,7 +182,7 @@ class WOMeta {
 
 	protected function assets_url() {
 		if ( ! $this->assets_url ) {
-			$this->assets_url = plugin_dir_url( __FILE__ ) . '/dist/';
+			$this->assets_url = plugin_dir_url( __FILE__ ) . 'dist/';
 		}
 
 		return $this->assets_url;
@@ -187,6 +198,18 @@ class WOMeta {
 		wp_enqueue_script( 'jquery' );
 
 		wp_register_script( 'wometa-repeater', $this->assets_url() . 'js/repeater.js', array( 'jquery', 'jquery-ui-core', 'jquery-ui-sortable' ), '1.0.0', array( 'in_footer' => true ) );
+
+		$sort_handle = $this->repeater_sort_handle();
+
+		wp_localize_script(
+			'wometa-repeater',
+			'wometa_repeater',
+			array(
+				'has_sort_handle'      => ( $sort_handle ) ? 'yes' : 'no',
+				'sort_handle_selector' => apply_filters( 'wo_repeater_sort_handle_selector', '.wometa-repeater-sort-icon' ),
+			)
+		);
+
 		wp_enqueue_script( 'wometa-repeater' );
 	}
 
@@ -230,6 +253,14 @@ class WOMeta {
 		echo $html;
 	}
 
+	public function repeater_sort_handle() {
+		return apply_filters( 'wo_repeater_draggable_icon', '<img src="' . esc_url( $this->assets_url() . 'img/drag.png' ) . '" alt="" class="wometa-repeater-sort-icon" />' );
+	}
+
+	public function repeater_icon_width() {
+		return apply_filters( 'wo_repeater_draggable_icon_width', 10 );
+	}
+
 	public function repeater_start( $columns = array(), $args = array() ) {
 		$args = wp_parse_args(
 			$args,
@@ -247,6 +278,9 @@ class WOMeta {
 
 		$args['classes'][] = $this->ns . '-repeater';
 
+		$sort_handle = $this->repeater_sort_handle();
+		$sort_width  = $this->repeater_icon_width();
+
 		$html = '<table';
 
 		if ( $args['width'] ) {
@@ -258,6 +292,10 @@ class WOMeta {
 
 		if ( ! empty( $columns ) ) {
 			$html .= '<thead><tr>';
+
+			if ( $sort_handle ) {
+				$html .= '<th width="' . esc_attr( $sort_width ) . '"></th>';
+			}
 
 			foreach ( $columns as $column ) {
 				$width = null;
@@ -326,17 +364,24 @@ class WOMeta {
 			)
 		);
 
+		$sort_handle = $this->repeater_sort_handle();
+		$sort_width  = $this->repeater_icon_width();
+
 		$html = '<tr class="wometa-repeater-row">';
 
 		if ( ! empty( $cells ) ) {
+			if ( $sort_handle ) {
+				$html .= '<td width="' . esc_attr( $sort_width ) . '" class="wometa-repeater-sort">' . $sort_handle . '</td>';
+			}
+
 			foreach ( $cells as $cell ) {
 				$html .= $this->repeater_cell( $cell );
 			}
 
 			if ( $args['controls_column'] ) {
 				$html .= '<td class="' . esc_attr( $this->ns . '-wometa-repeater-controls wometa-repeater-controls' ) . '">';
-				$html .= '<button class="' . esc_attr( 'wometa-repeater-controls--remove' ) . '">&ndash;</button>';
-				$html .= '<button class="' . esc_attr( 'wometa-repeater-controls--add' ) . '">+</button>';
+				$html .= '<button class="wometa-repeater-controls--remove">&ndash;</button>';
+				$html .= '<button class="wometa-repeater-controls--add">+</button>';
 				$html .= '</td>';
 			}
 		}

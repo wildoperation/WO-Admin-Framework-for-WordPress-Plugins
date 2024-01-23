@@ -1,1 +1,53 @@
+.wometa-repeater-sort-icon {
+  cursor: grab;
+  display: inline-block;
+  opacity: 0.15;
+  margin-right: 5px;
+  width: auto;
+  height: 16px;
+}
 
+.wometa-repeater-row td {
+  padding: 5px;
+}
+.wometa-repeater-row td.wometa-repeater-sort {
+  padding-left: 0;
+}
+.wometa-repeater-row td input,
+.wometa-repeater-row td select {
+  width: 100%;
+}
+
+.wowpads-wometa-repeater-controls {
+  line-height: 1;
+}
+.wowpads-wometa-repeater-controls button {
+  cursor: pointer;
+  display: inline-block;
+  outline: none;
+  padding: 0;
+  margin-left: 5px;
+  background: none;
+  box-shadow: none;
+  opacity: 0.75;
+  transition: opacity 100ms ease-in-out, transform 100ms ease-in-out;
+  border: 1px solid #000;
+  border-radius: 50%;
+  line-height: 1;
+  min-height: 20px;
+  min-width: 20px;
+}
+.wowpads-wometa-repeater-controls button:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+.wowpads-wometa-repeater-controls button:disabled {
+  cursor: default;
+  opacity: 0.1;
+}
+.wowpads-wometa-repeater-controls .wometa-repeater-controls--remove {
+  border-color: #ac0101;
+  color: #ac0101;
+}
+
+/*# sourceMappingURL=admin.css.map*/

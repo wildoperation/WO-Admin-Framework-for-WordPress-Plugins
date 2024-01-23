@@ -1,5 +1,5 @@
 <?php
-namespace WOAdminFramework;
+namespace WOWPAds\Vendor\WOAdminFramework;
 
 class WOUtilities {
 
