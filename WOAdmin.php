@@ -1,5 +1,5 @@
 <?php
-namespace WOWPAds\Vendor\WOAdminFramework;
+namespace WOAdminFramework;
 
 class WOAdmin {
 	public function authorize_action( $action_nonce, $nonce_key, $capability, $required_post = array() ) {

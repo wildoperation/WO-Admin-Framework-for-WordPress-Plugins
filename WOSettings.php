@@ -1,7 +1,7 @@
 <?php
-namespace WOWPAds\Vendor\WOAdminFramework;
+namespace WOAdminFramework;
 
-use WOWPAds\Vendor\WOAdminFramework\WOOptions;
+use WOAdminFramework\WOOptions;
 
 class WOSettings extends WOOPtions {
 

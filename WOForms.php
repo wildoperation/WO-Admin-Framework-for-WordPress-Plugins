@@ -1,5 +1,5 @@
 <?php
-namespace WOWPAds\Vendor\WOAdminFramework;
+namespace WOAdminFramework;
 
 class WOForms {
 	protected $text_domain;
@@ -103,6 +103,8 @@ class WOForms {
 				'display'     => true,
 				'id'          => null,
 				'placeholder' => null,
+				'min'         => null,
+				'max'         => null,
 			)
 		);
 
@@ -115,6 +117,14 @@ class WOForms {
 
 		if ( $args['placeholder'] ) {
 			$html .= ' placeholder="' . esc_attr( $args['placeholder'] ) . '"';
+		}
+
+		if ( $args['min'] ) {
+			$html .= ' min="' . esc_attr( $args['min'] ) . '"';
+		}
+
+		if ( $args['max'] ) {
+			$html .= ' max="' . esc_attr( $args['max'] ) . '"';
 		}
 
 		$html .= ' />';

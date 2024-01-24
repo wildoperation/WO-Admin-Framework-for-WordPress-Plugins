@@ -1,5 +1,5 @@
 <?php
-namespace WOWPAds\Vendor\WOAdminFramework;
+namespace WOAdminFramework;
 
 class WOMeta {
 	private $ns;
@@ -94,12 +94,20 @@ class WOMeta {
 	}
 
 
-	private function is_posted() {
+	private function is_posted( $object, $nonce ) {
 		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
 			return false;
 		}
 
-		return isset( $_POST ) && ! empty( $_POST );
+		if ( isset( $object->post_status ) && ( 'auto-draft' === $object->post_status || 'trash' === $object->post_status ) ) {
+			return false;
+		}
+
+		if ( ! isset( $nonce['action'] ) || ! isset( $nonce['name'] ) || ! isset( $_POST[ $nonce['name'] ] ) ) {
+			return false;
+		}
+
+		return isset( $_POST ) && ! empty( $_POST ) && wp_verify_nonce( sanitize_key( $_POST[ $nonce['name'] ] ), $nonce['action'] );
 	}
 
 	private function process_posted_meta( $id, $allowed_keys, $context = 'post' ) {
@@ -133,23 +141,25 @@ class WOMeta {
 		return update_post_meta( $id, $this->make_key( $key ), $value );
 	}
 
-	public function save_posted_metadata( $post, $allowed_keys ) {
-		if ( ! $this->is_posted() ||
-		( isset( $post->post_status ) && ( 'auto-draft' === $post->post_status || 'trash' === $post->post_status ) )
-		) {
-			return;
+	public function save_posted_metadata( $post, $allowed_keys, $nonce ) {
+		if ( ! $this->is_posted( $post, $nonce ) ) {
+			return false;
 		}
 
 		$this->process_posted_meta( $post->ID, $allowed_keys, 'post' );
+
+		return true;
 	}
 
-	public function save_posted_term_metadata( $term_id, $allowed_keys ) {
+	public function save_posted_term_metadata( $term_id, $allowed_keys, $nonce ) {
 
-		if ( ! $term_id || ! $this->is_posted() ) {
-			return;
+		if ( ! $term_id || ! $this->is_posted( null, $nonce ) ) {
+			return false;
 		}
 
 		$this->process_posted_meta( $term_id, $allowed_keys, 'term' );
+
+		return true;
 	}
 
 	public function label( $key, $text, $args = array() ) {
