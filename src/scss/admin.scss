@@ -61,3 +61,20 @@ $ease: ease-in-out;
 		color: #ac0101;
 	}
 }
+
+.woforms-input-group {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.75rem;
+
+	span {
+		white-space: nowrap;
+
+		input[type="radio"] + label,
+		input[type="checkbox"] + label {
+			margin-right: 0;
+		}
+	}
+}

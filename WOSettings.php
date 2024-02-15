@@ -3,18 +3,46 @@ namespace WOAdminFramework;
 
 use WOAdminFramework\WOOptions;
 
+/**
+ * Class for working with the Settings API.
+ * Extends framework WOOptions class for working with options.
+ */
 class WOSettings extends WOOPtions {
 
+	/**
+	 * The current text_domain
+	 *
+	 * @var string
+	 */
 	protected $text_domain;
-	public $woforms;
 
+	/**
+	 * An instance of WOForms
+	 *
+	 * @var WOForms
+	 */
+	public $wo_forms;
+
+	/**
+	 * __construct()
+	 *
+	 * @param string $text_domain The current text_domain.
+	 * @param string $ns The current namespace.
+	 */
 	public function __construct( $text_domain, $ns ) {
 		parent::__construct( $ns );
 
 		$this->text_domain = $text_domain;
-		$this->woforms     = new WOForms( $text_domain );
+		$this->wo_forms    = new WOForms( $text_domain );
 	}
 
+	/**
+	 * Get an ID either from the string provided or an array.
+	 *
+	 * @param string|array $id The variable to pull the ID from.
+	 *
+	 * @return string
+	 */
 	private function id( $id ) {
 		if ( is_array( $id ) ) {
 			return $id[ array_key_first( $id ) ];
@@ -23,6 +51,14 @@ class WOSettings extends WOOPtions {
 		return $id;
 	}
 
+	/**
+	 * Create a name from an ID.
+	 * Formats as an HTML array if an array is provided.
+	 *
+	 * @param string|array $id The variable to pull the name from.
+	 *
+	 * @return string
+	 */
 	private function name( $id ) {
 		if ( is_array( $id ) ) {
 			$key = array_key_first( $id );
@@ -32,37 +68,75 @@ class WOSettings extends WOOPtions {
 		return $id;
 	}
 
+	/**
+	 * Start the page wrapper.
+	 *
+	 * @return void
+	 */
 	public function start() {
 		?>
 		<div class="wrap">
 		<?php
 	}
 
+	/**
+	 * End the page wrapper.
+	 *
+	 * @return void
+	 */
 	public function end() {
 		?>
 		</div>
 		<?php
 	}
 
+	/**
+	 * Format the page title
+	 *
+	 * @param string $title The page title.
+	 *
+	 * @return void
+	 */
 	public function title( $title ) {
 		?>
 		<h2><?php esc_html_e( $title ); ?></h2>
 		<?php
 	}
 
-	public function form_start( $action, $method = 'post' ) {
+	/**
+	 * The settings form tag.
+	 *
+	 * @param string $action The form action.
+	 * @param string $method The form method.
+	 *
+	 * @return void
+	 */
+	public function form_start( $action = 'options.php', $method = 'post' ) {
 		?>
-		<form method="<?php esc_attr_e( $method ); ?>" action="options.php">
+		<form method="<?php esc_attr_e( $method ); ?>" action="<?php esc_url_e( $action ); ?>">
 		<?php
 	}
 
+	/**
+	 * End form tag.
+	 *
+	 * @return void
+	 */
 	public function form_end() {
 		?>
 		</form>
 		<?php
 	}
 
-	private function get_tab_url( $tab_key, $admin_url ) {
+	/**
+	 * Gets the URL to a tab on a settings page.
+	 *
+	 * @param string $tab_key The key of the tab.
+	 * @param string $admin_url The URL to append the parameter to.
+	 *
+	 * @return string
+	 */
+	public function get_tab_url( $tab_key, $admin_url ) {
 		return add_query_arg(
 			array(
 				'tab' => $tab_key,
@@ -71,6 +145,14 @@ class WOSettings extends WOOPtions {
 		);
 	}
 
+	/**
+	 * Creates page tabs from a settings array.
+	 *
+	 * @param array  $settings An array of settings.
+	 * @param string $admin_url The URL this tab appears on.
+	 *
+	 * @return array
+	 */
 	public function create_tabs_from_settings( $settings, $admin_url ) {
 
 		$tabs = array();
@@ -87,13 +169,21 @@ class WOSettings extends WOOPtions {
 		return $tabs;
 	}
 
+	/**
+	 * Displays settings tabs on a page.
+	 *
+	 * @param array       $tabs An array of tabs to display.
+	 * @param null|string $active_tab The currently active tab.
+	 *
+	 * @return void
+	 */
 	public function display_tabs( $tabs = array(), $active_tab = null ) {
 		if ( empty( $tabs ) ) {
 			return;
 		}
 
 		if ( $active_tab === null ) {
-			$active_tab = isset( $_GET['tab'] ) ? $_GET['tab'] : $tabs[0]['key'];
+			$active_tab = isset( $_REQUEST['tab'] ) ? sanitize_text_field( $_REQUEST['tab'] ) : $tabs[0]['key'];
 		}
 		?>
 		<h2 class="nav-tab-wrapper">
@@ -104,6 +194,16 @@ class WOSettings extends WOOPtions {
 		<?php
 	}
 
+	/**
+	 * Creates a complete settings page.
+	 *
+	 * @param string $admin_title The title of the page.
+	 * @param string $admin_action The form action.
+	 * @param string $admin_url The URL of the settings page.
+	 * @param array  $settings A settings array from which to build our settings.
+	 *
+	 * @return void
+	 */
 	public function settings_page( $admin_title, $admin_action, $admin_url, $settings ) {
 		$this->start();
 		$this->title( $admin_title );
@@ -135,9 +235,18 @@ class WOSettings extends WOOPtions {
 		$this->end();
 	}
 
+	/**
+	 * Creates settings sections and registers fields.
+	 *
+	 * @param array $settings A settings array from which to build our settings.
+	 * @param mixed $class_instance The class for our settings field callbacks.
+	 *
+	 * @return void
+	 */
 	public function add_sections_and_settings( $settings, $class_instance ) {
 		foreach ( $settings as $key => $group ) {
-			$this->initialize( $key );
+			$defaults = isset( $group['initialize'] ) ? $group['initialize'] : array();
+			$this->initialize( $key, $defaults );
 
 			/**
 			 * This is the overall group
@@ -163,12 +272,24 @@ class WOSettings extends WOOPtions {
 				 */
 				if ( isset( $section['fields'] ) && ! empty( $section['fields'] ) ) {
 					foreach ( $section['fields'] as $field_key => $value ) {
+						$args = array();
+
+						if ( is_array( $value ) ) {
+							$restricted = isset( $value['restricted'] ) ? $value['restricted'] : null;
+							$value      = $value['title'];
+
+							if ( $restricted ) {
+								$args['class'] = $this->ns . '-mode-restrict ' . $this->ns . '-mode-restrict--' . sanitize_title( $restricted );
+							}
+						}
+
 						add_settings_field(
 							$field_key,
 							$value,
 							array( $class_instance, 'field_' . $this->ns . '_' . $field_key ),
 							$opt_key,
-							$section_key . '_settings_section'
+							$section_key . '_settings_section',
+							$args
 						);
 					}
 				}
@@ -190,11 +311,30 @@ class WOSettings extends WOOPtions {
 		}
 	}
 
+	/**
+	 * Creates a form label using our settings ID.
+	 *
+	 * @param string $id Form field ID.
+	 * @param string $text Text of the label.
+	 * @param array  $args Optional args to pass to WOForms.
+	 *
+	 * @return string
+	 */
 	public function label( $id, $text, $args = array() ) {
 		$id = $this->id( $id );
-		return $this->woforms->label( $id, $text, $args );
+		return $this->wo_forms->label( $id, $text, $args );
 	}
 
+	/**
+	 * Creates a select dropdown on a settings page.
+	 *
+	 * @param string $id Form field ID.
+	 * @param array  $options The options in the select field.
+	 * @param mixed  $current_value The current value to select.
+	 * @param array  $args Optional args to pass to WOForms.
+	 *
+	 * @return string
+	 */
 	public function select( $id, $options, $current_value = null, $args = array() ) {
 		$name       = $this->name( $id );
 		$args['id'] = $this->id( $id );
@@ -203,30 +343,110 @@ class WOSettings extends WOOPtions {
 			$current_value = $args['default'];
 		}
 
-		return $this->woforms->select( $name, $options, $current_value, $args );
+		return $this->wo_forms->select( $name, $options, $current_value, $args );
 	}
 
+	/**
+	 * Creates a checkbox on a settings page.
+	 *
+	 * @param string $id Form field ID.
+	 * @param mixed  $current_value The current value.
+	 * @param mixed  $checked_value The value when checked.
+	 * @param array  $args Optional args to pass to WOForms.
+	 *
+	 * @return string
+	 */
 	public function checkbox( $id, $current_value, $checked_value = 1, $args = array() ) {
 		$name       = $this->name( $id );
 		$args['id'] = $this->id( $id );
 
-		return $this->woforms->checkbox( $name, $current_value, $checked_value, $args );
+		return $this->wo_forms->checkbox( $name, $current_value, $checked_value, $args );
 	}
 
-	public function textarea( $id, $value, $args = array() ) {
+	/**
+	 * Creates a textarea on a settings page.
+	 *
+	 * @param string $id Form field ID.
+	 * @param mixed  $current_value The current value of the textarea.
+	 * @param array  $args Optional args to pass to WOForms.
+	 *
+	 * @return string
+	 */
+	public function textarea( $id, $current_value, $args = array() ) {
 		$name       = $this->name( $id );
 		$args['id'] = $this->id( $id );
 
-		return $this->woforms->textarea( $name, $value, $args );
+		return $this->wo_forms->textarea( $name, $current_value, $args );
 	}
 
-	public function input( $id, $value, $type = 'text', $args = array() ) {
+	/**
+	 * Creates an input of specified $type on a settings page.
+	 *
+	 * @param string $id Form field ID.
+	 * @param mixed  $current_value The current value of the input.
+	 * @param string $type The type of input (e.g., 'text' or 'number').
+	 * @param array  $args Optional args to pass to WOForms.
+	 *
+	 * @return string
+	 */
+	public function input( $id, $current_value, $type = 'text', $args = array() ) {
 		$name       = $this->name( $id );
 		$args['id'] = $this->id( $id );
 
-		return $this->woforms->input( $name, $value, $type, $args );
+		return $this->wo_forms->input( $name, $current_value, $type, $args );
 	}
 
+	/**
+	 * Creates a group of checkboxes on a settings page.
+	 *
+	 * @param string $id Form field ID.
+	 * @param array  $checkboxes A key/value array of checkboxes.
+	 * @param array  $current_values An array of current values that should be checked.
+	 * @param array  $args Optional args to pass to WOForms.
+	 *
+	 * @return string
+	 */
+	public function checkgroup( $id, $checkboxes, $current_values = array(), $args = array() ) {
+		$name       = $this->name( $id );
+		$args['id'] = $this->id( $id );
+		return $this->wo_forms->inputgroup( $name, $checkboxes, $current_values, 'checkbox', $args );
+	}
+
+	/**
+	 * Creates a group of radios on a settings page.
+	 *
+	 * @param string $id Form field ID.
+	 * @param array  $radios A key/value array of checkboxes.
+	 * @param mixed  $current_value The current value to select.
+	 * @param array  $args Optional args to pass to WOForms.
+	 *
+	 * @return string
+	 */
+	public function radiogroup( $id, $radios, $current_value = null, $args = array() ) {
+		$name       = $this->name( $id );
+		$args['id'] = $this->id( $id );
+		return $this->wo_forms->inputgroup( $name, $radios, $current_value, 'radio', $args );
+	}
+
+	/**
+	 * Creates a message on a settings page.
+	 *
+	 * @param string $message The message to display.
+	 * @param array  $args Optional args to pass to WOForms.
+	 *
+	 * @return string
+	 */
+	public function message( $message, $args = array() ) {
+		return $this->wo_forms->message( $message, $args );
+	}
+
+	/**
+	 * Default sanitization for settings. Treats everything as a text field or returns null.
+	 *
+	 * @param mixed $value The value to sanitize.
+	 *
+	 * @return mixed
+	 */
 	public function sanitize_default( $value ) {
 		if ( ! $value ) {
 			return null;
@@ -235,16 +455,32 @@ class WOSettings extends WOOPtions {
 		return sanitize_text_field( $value );
 	}
 
+	/**
+	 * A basic sanitization function that checks for capability and then uses sanitize_default if allowed.
+	 *
+	 * @param mixed $input The input to sanitize.
+	 * @param mixed $capability The capability to check.
+	 *
+	 * @return mixed
+	 */
 	public function sanitize_input_basic( $input, $capability ) {
 		if ( ! current_user_can( $capability ) ) {
 			die();
 		}
 
+		if ( ! $input ) {
+			return null;
+		}
+
 		$output = array();
 
 		if ( $input ) {
-			foreach ( $input as $key => $value ) {
-				$output[ $key ] = $this->sanitize_default( $value );
+			if ( is_array( $input ) ) {
+				foreach ( $input as $key => $value ) {
+					$output[ $key ] = $this->sanitize_default( $value );
+				}
+			} else {
+				$output = $this->sanitize_default( $input );
 			}
 		}
 

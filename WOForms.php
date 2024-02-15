@@ -1,13 +1,33 @@
 <?php
 namespace WOAdminFramework;
 
+/**
+ * Create form elements for use in meta or options.
+ */
 class WOForms {
+	/**
+	 * The current text_domain
+	 *
+	 * @var string
+	 */
 	protected $text_domain;
 
+	/**
+	 * __construct()
+	 *
+	 * @param string $text_domain The text domain for your plugin.
+	 */
 	public function __construct( $text_domain = 'default' ) {
 		$this->text_domain = $text_domain;
 	}
 
+	/**
+	 * Maybe add a class attribute to something.
+	 *
+	 * @param null $classes The classes to include in the attribute.
+	 *
+	 * @return string
+	 */
 	public function maybe_class( $classes = null ) {
 		if ( $classes ) {
 
@@ -21,20 +41,51 @@ class WOForms {
 		return '';
 	}
 
+	/**
+	 * Maybe add a disabled prop to something.
+	 *
+	 * @param bool $disabled If something is disabled.
+	 *
+	 * @return string
+	 */
+	private function maybe_disable( $disabled ) {
+		if ( $disabled ) {
+			return ' disabled';
+		}
+
+		return '';
+	}
+
+	/**
+	 * Create a label for form element.
+	 *
+	 * @param string $id The ID of the form element.
+	 * @param string $text The text for the label.
+	 * @param array  $args Optional arguments.
+	 *
+	 * @return string|void
+	 */
 	public function label( $id, $text, $args = array() ) {
 		$args = wp_parse_args(
 			$args,
 			array(
-				'classes' => null,
-				'display' => true,
+				'classes'      => null,
+				'display'      => true,
+				'allowed_html' => array(
+					'br'     => array( 'class' => array() ),
+					'em'     => array( 'class' => array() ),
+					'strong' => array( 'class' => array() ),
+					'span'   => array( 'class' => array() ),
+					'code'   => array( 'class' => array() ),
+				),
 			)
 		);
 
-		$html  = '<label for="' . esc_attr( $id ) . '"';
-		$html .= $this->maybe_class( $args['classes'] );
-		$html .= '>';
-		$html .= esc_html( $text, $this->text_domain );
-		$html .= '</label>';
+			$html  = '<label for="' . esc_attr( $id ) . '"';
+			$html .= $this->maybe_class( $args['classes'] );
+			$html .= '>';
+			$html .= __( wp_kses( $text, $args['allowed_html'] ), $this->text_domain );
+			$html .= '</label>';
 
 		if ( ! $args['display'] ) {
 			return $html;
@@ -43,6 +94,16 @@ class WOForms {
 		echo $html;
 	}
 
+	/**
+	 * Creates a select dropdown on a settings page.
+	 *
+	 * @param string $name Form field name.
+	 * @param array  $options The options in the select field.
+	 * @param mixed  $current_value The current value to select.
+	 * @param array  $args Optional args.
+	 *
+	 * @return string|void
+	 */
 	public function select( $name, $options, $current_value, $args = array() ) {
 
 		$args = wp_parse_args(
@@ -52,6 +113,7 @@ class WOForms {
 				'display'    => true,
 				'id'         => null,
 				'empty_text' => null,
+				'disabled'   => false,
 			)
 		);
 
@@ -61,6 +123,7 @@ class WOForms {
 
 		$html  = '<select name="' . esc_attr( $name ) . '" id="' . esc_attr( $args['id'] ) . '"';
 		$html .= $this->maybe_class( $args['classes'] );
+		$html .= $this->maybe_disable( $args['disabled'] );
 		$html .= '>';
 
 		if ( $args['empty_text'] ) {
@@ -78,7 +141,7 @@ class WOForms {
 			$html .= '<option value="' . esc_attr( $option_value ) . '" ';
 
 			if ( $disabled ) {
-				$html .= 'disabled="true"';
+				$html .= 'disabled';
 			} else {
 				$html .= selected( $option_value, $current_value, false );
 			}
@@ -95,7 +158,17 @@ class WOForms {
 		echo $html;
 	}
 
-	public function input( $name, $value, $type = 'text', $args = array() ) {
+	/**
+	 * Creates an input of specified $type.
+	 *
+	 * @param string $name Form field name.
+	 * @param mixed  $current_value The current value to select.
+	 * @param string $type The type of input (e.g., 'text' or 'number').
+	 * @param array  $args Optional args.
+	 *
+	 * @return string|void
+	 */
+	public function input( $name, $current_value, $type = 'text', $args = array() ) {
 		$args = wp_parse_args(
 			$args,
 			array(
@@ -105,6 +178,8 @@ class WOForms {
 				'placeholder' => null,
 				'min'         => null,
 				'max'         => null,
+				'disabled'    => false,
+				'readonly'    => false,
 			)
 		);
 
@@ -112,7 +187,7 @@ class WOForms {
 			$args['id'] = $name;
 		}
 
-		$html  = '<input type="' . esc_attr( $type ) . '" value="' . esc_attr( $value ) . '" name="' . esc_attr( $name ) . '" id="' . esc_attr( $args['id'] ) . '"';
+		$html  = '<input type="' . esc_attr( $type ) . '" value="' . esc_attr( $current_value ) . '" name="' . esc_attr( $name ) . '" id="' . esc_attr( $args['id'] ) . '"';
 		$html .= $this->maybe_class( $args['classes'] );
 
 		if ( $args['placeholder'] ) {
@@ -127,6 +202,12 @@ class WOForms {
 			$html .= ' max="' . esc_attr( $args['max'] ) . '"';
 		}
 
+		$html .= $this->maybe_disable( $args['disabled'] );
+
+		if ( $args['readonly'] === true ) {
+			$html .= ' readonly';
+		}
+
 		$html .= ' />';
 
 		if ( ! $args['display'] ) {
@@ -136,15 +217,25 @@ class WOForms {
 		echo $html;
 	}
 
-	public function textarea( $name, $value, $args = array() ) {
+	/**
+	 * Creates a textarea.
+	 *
+	 * @param string $name Form field name.
+	 * @param mixed  $current_value The current value of the textarea.
+	 * @param array  $args Optional args.
+	 *
+	 * @return string|void
+	 */
+	public function textarea( $name, $current_value, $args = array() ) {
 		$args = wp_parse_args(
 			$args,
 			array(
-				'classes' => null,
-				'display' => true,
-				'id'      => null,
-				'rows'    => 10,
-				'cols'    => 90,
+				'classes'  => null,
+				'display'  => true,
+				'id'       => null,
+				'rows'     => 10,
+				'cols'     => 90,
+				'disabled' => false,
 			)
 		);
 
@@ -154,7 +245,8 @@ class WOForms {
 
 		$html  = '<textarea name="' . esc_attr( $name ) . '" id="' . esc_attr( $args['id'] ) . '" rows="' . esc_attr( $args['rows'] ) . '" cols="' . esc_attr( $args['cols'] ) . '"';
 		$html .= $this->maybe_class( $args['classes'] );
-		$html .= '>' . $value . '</textarea>';
+		$html .= $this->maybe_disable( $args['disabled'] );
+		$html .= '>' . $current_value . '</textarea>';
 
 		if ( ! $args['display'] ) {
 			return $html;
@@ -163,13 +255,24 @@ class WOForms {
 		echo $html;
 	}
 
+	/**
+	 * Creates a checkbox.
+	 *
+	 * @param string $name Form field name.
+	 * @param mixed  $current_value The current value.
+	 * @param mixed  $checked_value The value when checked.
+	 * @param array  $args Optional args to pass to WOForms.
+	 *
+	 * @return string|void
+	 */
 	public function checkbox( $name, $current_value, $checked_value = 1, $args = array() ) {
 		$args = wp_parse_args(
 			$args,
 			array(
-				'classes' => null,
-				'display' => true,
-				'id'      => null,
+				'classes'  => null,
+				'display'  => true,
+				'id'       => null,
+				'disabled' => false,
 			)
 		);
 
@@ -179,6 +282,7 @@ class WOForms {
 
 		$html  = '<input type="checkbox" value="' . esc_attr( $checked_value ) . '" name="' . esc_attr( $name ) . '" id="' . esc_attr( $args['id'] ) . '" ' . checked( $checked_value, $current_value, false );
 		$html .= $this->maybe_class( $args['classes'] );
+		$html .= $this->maybe_disable( $args['disabled'] );
 		$html .= '/>';
 
 		if ( ! $args['display'] ) {
@@ -188,6 +292,17 @@ class WOForms {
 		echo $html;
 	}
 
+	/**
+	 * Creates a group of checkboxes or radios.
+	 *
+	 * @param string $name Form field name.
+	 * @param array  $options A key/value array of inputs.
+	 * @param mixed  $current_value The current values that should be checked.
+	 * @param string $type Type of input to display.
+	 * @param array  $args Optional args to pass to WOForms.
+	 *
+	 * @return string|void
+	 */
 	public function inputgroup( $name, $options, $current_value, $type = 'radio', $args = array() ) {
 
 		if ( empty( $options ) ) {
@@ -197,7 +312,7 @@ class WOForms {
 		$args = wp_parse_args(
 			$args,
 			array(
-				'classes'    => null,
+				'classes'    => array( 'woforms-input-group' ),
 				'display'    => true,
 				'id'         => null,
 				'empty_text' => null,
@@ -233,6 +348,10 @@ class WOForms {
 		foreach ( $options as $value => $text ) {
 			$id = $args['id'] . '_' . $idx;
 
+			if ( $args['wrap'] ) {
+				$html .= '<span>';
+			}
+
 			$html .= '<input type="' . esc_attr( $type ) . '" id="' . esc_attr( $id ) . '" name="' . esc_attr( $name ) . '" value="' . esc_attr( $value ) . '"';
 
 			if ( $type === 'radio' ) {
@@ -243,6 +362,10 @@ class WOForms {
 
 			$html .= ' />';
 			$html .= $this->label( $id, $text, array( 'display' => false ) );
+
+			if ( $args['wrap'] ) {
+				$html .= '</span>';
+			}
 
 			++$idx;
 		}
@@ -258,6 +381,14 @@ class WOForms {
 		echo $html;
 	}
 
+	/**
+	 * Creates a message.
+	 *
+	 * @param string $message The message to display.
+	 * @param array  $args Optional args to pass to WOForms.
+	 *
+	 * @return string
+	 */
 	public function message( $message, $args = array() ) {
 		$args = wp_parse_args(
 			$args,
@@ -265,14 +396,15 @@ class WOForms {
 				'classes'      => null,
 				'display'      => true,
 				'allowed_html' => wp_kses_allowed_html( 'post' ),
+				'element'      => 'p',
 			)
 		);
 
-		$html  = '<p';
+		$html  = '<' . wp_strip_all_tags( $args['element'] );
 		$html .= $this->maybe_class( $args['classes'] );
 		$html .= '>';
 		$html .= __( wp_kses( $message, $args['allowed_html'] ), $this->text_domain );
-		$html .= '</p>';
+		$html .= '</' . wp_strip_all_tags( $args['element'] ) . '>';
 
 		if ( ! $args['display'] ) {
 			return $html;
