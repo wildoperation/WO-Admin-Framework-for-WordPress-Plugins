@@ -113,7 +113,7 @@ class WOSettings extends WOOPtions {
 	 */
 	public function form_start( $action = 'options.php', $method = 'post' ) {
 		?>
-		<form method="<?php esc_attr_e( $method ); ?>" action="<?php esc_url_e( $action ); ?>">
+		<form method="<?php esc_attr_e( $method ); ?>" action="<?php echo esc_url( $action ); ?>">
 		<?php
 	}
 

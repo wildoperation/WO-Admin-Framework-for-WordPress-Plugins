@@ -393,17 +393,28 @@ class WOForms {
 		$args = wp_parse_args(
 			$args,
 			array(
-				'classes'      => null,
-				'display'      => true,
-				'allowed_html' => wp_kses_allowed_html( 'post' ),
-				'element'      => 'p',
+				'classes'       => null,
+				'display'       => true,
+				'allowed_html'  => wp_kses_allowed_html( 'post' ),
+				'element'       => 'p',
+				'inner_element' => null,
 			)
 		);
 
 		$html  = '<' . wp_strip_all_tags( $args['element'] );
 		$html .= $this->maybe_class( $args['classes'] );
 		$html .= '>';
+
+		if ( $args['inner_element'] ) {
+			$html .= '<' . wp_strip_all_tags( $args['inner_element'] ) . '>';
+		}
+
 		$html .= __( wp_kses( $message, $args['allowed_html'] ), $this->text_domain );
+
+		if ( $args['inner_element'] ) {
+			$html .= '</' . wp_strip_all_tags( $args['inner_element'] ) . '>';
+		}
+
 		$html .= '</' . wp_strip_all_tags( $args['element'] ) . '>';
 
 		if ( ! $args['display'] ) {
