@@ -8,6 +8,7 @@
 }
 
 .wometa-repeater-row td {
+  vertical-align: middle;
   padding: 5px;
 }
 .wometa-repeater-row td.wometa-repeater-sort {
@@ -18,8 +19,18 @@
   width: 100%;
 }
 
+.widefat .wometa-repeater-row td,
+.widefat .wometa-repeater-row th {
+  padding: 8px 10px;
+}
+.widefat .wometa-repeater-row input,
+.widefat .wometa-repeater-row select {
+  width: auto;
+}
+
 .wowpads-wometa-repeater-controls {
   line-height: 1;
+  white-space: nowrap;
 }
 .wowpads-wometa-repeater-controls button {
   cursor: pointer;

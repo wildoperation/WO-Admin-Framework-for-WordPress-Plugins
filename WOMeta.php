@@ -30,11 +30,10 @@ class WOMeta {
 	 * __construct()
 	 *
 	 * @param string $ns The namespace for your meta fields.
-	 * @param string $text_domain The text_domain for your plugin.
 	 */
-	public function __construct( $ns, $text_domain = 'default' ) {
+	public function __construct( $ns ) {
 		$this->ns       = $ns;
-		$this->wo_forms = new WOForms( $text_domain );
+		$this->wo_forms = new WOForms();
 	}
 
 	/**
@@ -231,24 +230,104 @@ class WOMeta {
 	 * @return void
 	 */
 	private function process_posted_meta( $id, $allowed_keys, $context = 'post' ) {
-
+		/**
+		 * Loop through all allowed keys and their values.
+		 */
 		foreach ( $allowed_keys as $key => $allowed_keyvalue ) {
+			$value = null;
+
+			/**
+			 * If a particular key should be ignored, continue.
+			 */
 			if ( isset( $allowed_keyvalue['ignore_post'] ) && $allowed_keyvalue['ignore_post'] === true ) {
 				continue;
 			}
 
+			/**
+			 * Create namespaced key for checking $_POST
+			 */
 			$full_key = $this->make_key( $key );
 
-			$value = null;
+			if ( isset( $_POST[ $full_key ] ) && isset( $allowed_keyvalue['children'] ) ) {
+				/**
+				 * This allowed_keyvalue has children.
+				 * This is often used with repeater fields that have sub-fields.
+				 * Each child will be processed, and the entire value will be saved as a serialized array.
+				 */
+				$value = array();
 
-			if ( isset( $_POST[ $full_key ] ) ) {
+				/**
+				 * Most often in this scenario, the $_POST value will be an array.
+				 * If it's not, we'll make it one.
+				 */
+				$posteds = WOUtilities::arrayify( $_POST[ $full_key ] );
+
+				foreach ( $posteds as $posted ) {
+					if ( ! empty( $allowed_keyvalue['children'] ) ) {
+						$child_values = array();
+
+						/**
+						 * Loop through each child key and sanitize it.
+						 */
+						foreach ( $allowed_keyvalue['children'] as $child_key => $child_value ) {
+							if ( ! isset( $posted[ $child_key ] ) || ! $posted[ $child_key ] ) {
+
+								/**
+								 * In some cases, if a particular child is missing we may want to invalidate the entire row.
+								 * If that happens, reset our child_values so that it is not later added to the stored value.
+								 */
+								if ( isset( $child_value['required'] ) && $child_value['required'] === true ) {
+									$child_values = array();
+									break;
+								}
+
+								/**
+								 * Oherwise, parse the default.
+								 */
+								$child_values[ $child_key ] = $this->parse_default( $child_value );
+							} else {
+								/**
+								 * If the child was posted, sanitize the input.
+								 */
+								$child_values[ $child_key ] = $this->sanitize_meta_input( $child_value, $posted[ $child_key ] );
+							}
+						}
+
+						/**
+						 * Store this child in our parent meta array.
+						 */
+						if ( ! empty( $child_values ) ) {
+							$value[] = $child_values;
+						}
+					}
+				}
+
+				/**
+				 * If we didn't have any children rows, parse the default of the parent.
+				 */
+				if ( empty( $value ) ) {
+					$value = $this->parse_default( $allowed_keyvalue );
+				}
+			} elseif ( isset( $_POST[ $full_key ] ) ) {
+				/**
+				 * This is just a normal field. Sanitize and save the value.
+				 */
 				$value = $this->sanitize_meta_input( $allowed_keyvalue, $_POST[ $full_key ] );
 			} elseif ( isset( $allowed_keyvalue['type'] ) && $allowed_keyvalue['type'] === 'bool' ) {
+				/**
+				 * If this field wasn't in the post, and it's a bool, we'll default to 0 always.
+				 */
 				$value = 0;
 			} else {
+				/**
+				 * If this field wasn't in the post, parse the default value.
+				 */
 				$value = $this->parse_default( $allowed_keyvalue );
 			}
 
+			/**
+			 * Save meta to the database.
+			 */
 			if ( $context === 'term' ) {
 				update_term_meta( $id, $full_key, $value );
 			} else {
@@ -420,7 +499,7 @@ class WOMeta {
 	/**
 	 * Enqueue scripts and styles used for repeater fields.
 	 *
-	 * @return void
+	 * @return string
 	 */
 	public function repeater_enqueue() {
 		$this->woadmin()->enqueue_woadmin_styles();
@@ -429,12 +508,13 @@ class WOMeta {
 		wp_enqueue_script( 'jquery-ui-core' );
 		wp_enqueue_script( 'jquery-ui-sortable' );
 
-		wp_register_script( 'wometa-repeater', $this->woadmin()->assets_url() . 'js/repeater.js', array( 'jquery', 'jquery-ui-core', 'jquery-ui-sortable' ), '1.0.0', array( 'in_footer' => true ) );
+		$handle = 'wometa-repeater';
+		wp_register_script( $handle, $this->woadmin()->assets_url() . 'js/repeater.js', array( 'jquery', 'jquery-ui-core', 'jquery-ui-sortable' ), '1.0.0', array( 'in_footer' => true ) );
 
 		$sort_handle = $this->repeater_sort_handle();
 
 		wp_localize_script(
-			'wometa-repeater',
+			$handle,
 			'wometa_repeater',
 			array(
 				'has_sort_handle'      => ( $sort_handle ) ? 'yes' : 'no',
@@ -442,7 +522,9 @@ class WOMeta {
 			)
 		);
 
-		wp_enqueue_script( 'wometa-repeater' );
+		wp_enqueue_script( $handle );
+
+		return $handle;
 	}
 
 	/**
@@ -528,6 +610,8 @@ class WOMeta {
 				'display'         => false,
 				'width'           => '100%',
 				'controls_column' => '',
+				'sortable'        => true,
+				'use_array_keys'  => false,
 			)
 		);
 
@@ -537,8 +621,11 @@ class WOMeta {
 
 		$args['classes'][] = $this->ns . '-repeater';
 
-		$sort_handle = $this->repeater_sort_handle();
-		$sort_width  = $this->repeater_icon_width();
+		$sort_handle = false;
+		if ( $args['sortable'] ) {
+			$sort_handle = $this->repeater_sort_handle();
+			$sort_width  = $this->repeater_icon_width();
+		}
 
 		$html = '<table';
 
@@ -547,6 +634,11 @@ class WOMeta {
 		}
 
 		$html .= $this->wo_forms->maybe_class( $args['classes'] );
+
+		if ( $args['use_array_keys'] === true ) {
+			$html .= ' data-usekeys="true"';
+		}
+
 		$html .= '>';
 
 		if ( ! empty( $columns ) ) {
@@ -635,11 +727,15 @@ class WOMeta {
 			array(
 				'display'         => false,
 				'controls_column' => true,
+				'sortable'        => true,
 			)
 		);
 
-		$sort_handle = $this->repeater_sort_handle();
-		$sort_width  = $this->repeater_icon_width();
+		$sort_handle = false;
+		if ( $args['sortable'] ) {
+			$sort_handle = $this->repeater_sort_handle();
+			$sort_width  = $this->repeater_icon_width();
+		}
 
 		$html = '<tr class="wometa-repeater-row">';
 
@@ -710,16 +806,26 @@ class WOMeta {
 				'display'         => true,
 				'width'           => '100%',
 				'controls_column' => '',
+				'sortable'        => true,
+				'use_array_keys'  => false,
 			)
 		);
 
-		$table_start_args            = $args;
-		$table_start_args['display'] = false;
+		$args['classes'] = WOUtilities::arrayify( $args['classes'] );
 
-		$html = $this->repeater_start( $columns, $table_start_args );
+		if ( ! $args['sortable'] ) {
+			$args['classes'][] = 'wometa-nosort';
+		}
+
+		$table_sub_args            = $args;
+		$table_sub_args['display'] = false;
+
+		$html = $this->repeater_start( $columns, $table_sub_args );
+
+		$table_sub_args['controls_column'] = $args['controls_column'] !== false ? true : false;
 
 		foreach ( $rows as $cells ) {
-			$html .= $this->repeater_row( $cells );
+			$html .= $this->repeater_row( $cells, $table_sub_args );
 		}
 
 		$html .= $this->repeater_end();

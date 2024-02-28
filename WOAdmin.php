@@ -46,7 +46,7 @@ class WOAdmin {
 	 *
 	 * @return void
 	 */
-	public function authorize_action( $action_nonce, $nonce_key, $capability, $required_data = array() ) {
+	public function authorize_ajax_action( $action_nonce, $nonce_key, $capability, $required_data = array() ) {
 		check_ajax_referer( $action_nonce, $nonce_key );
 
 		if ( ! current_user_can( $capability ) ) {
@@ -54,9 +54,7 @@ class WOAdmin {
 		}
 
 		if ( $required_data ) {
-			if ( ! is_array( $required_data ) ) {
-				$required_data = array( $required_data );
-			}
+			$required_data = WOUtilities::arrayify( $required_data );
 
 			foreach ( $required_data as $required ) {
 				if ( ! isset( $_REQUEST[ $required ] ) ) {
@@ -125,6 +123,10 @@ class WOAdmin {
 			case 'integers':
 			case 'int':
 			case 'ints':
+				if ( ( $type === 'ints' || $type == 'integers' ) && ( is_string( $input ) && strpos( $input, ',' ) !== false ) ) {
+					$input = explode( ',', $input );
+				}
+
 				if ( is_array( $input ) || ( $input === null && ( $type === 'ints' || $type === 'integers' ) ) ) {
 					$value = WOUtilities::sanitize_int_array( $input, true );
 				} else {
@@ -143,6 +145,10 @@ class WOAdmin {
 			case 'richcontent':
 			case 'editor':
 				$value = ( self::allow_unfiltered_html() ) ? $input : wp_kses( $input, wp_kses_allowed_html( 'post' ) );
+				break;
+
+			case 'mixed':
+				$value = WOUtilities::sanitize_mixed_input( $input );
 				break;
 
 			case 'str':

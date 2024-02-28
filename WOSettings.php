@@ -10,13 +10,6 @@ use WOAdminFramework\WOOptions;
 class WOSettings extends WOOPtions {
 
 	/**
-	 * The current text_domain
-	 *
-	 * @var string
-	 */
-	protected $text_domain;
-
-	/**
 	 * An instance of WOForms
 	 *
 	 * @var WOForms
@@ -26,14 +19,12 @@ class WOSettings extends WOOPtions {
 	/**
 	 * __construct()
 	 *
-	 * @param string $text_domain The current text_domain.
 	 * @param string $ns The current namespace.
 	 */
-	public function __construct( $text_domain, $ns ) {
+	public function __construct( $ns ) {
 		parent::__construct( $ns );
 
-		$this->text_domain = $text_domain;
-		$this->wo_forms    = new WOForms( $text_domain );
+		$this->wo_forms = new WOForms();
 	}
 
 	/**
@@ -113,7 +104,7 @@ class WOSettings extends WOOPtions {
 	 */
 	public function form_start( $action = 'options.php', $method = 'post' ) {
 		?>
-		<form method="<?php esc_attr_e( $method ); ?>" action="<?php echo esc_url( $action ); ?>">
+		<form method="<?php echo esc_attr( $method ); ?>" action="<?php echo esc_url( $action ); ?>">
 		<?php
 	}
 
@@ -204,10 +195,10 @@ class WOSettings extends WOOPtions {
 	 *
 	 * @return void
 	 */
-	public function settings_page( $admin_title, $admin_action, $admin_url, $settings ) {
+	public function settings_page( $admin_title, $admin_url, $settings ) {
 		$this->start();
 		$this->title( $admin_title );
-		$this->form_start( $admin_action );
+		$this->form_start();
 
 		settings_errors();
 
@@ -276,11 +267,20 @@ class WOSettings extends WOOPtions {
 
 						if ( is_array( $value ) ) {
 							$restricted = isset( $value['restricted'] ) ? $value['restricted'] : null;
-							$value      = $value['title'];
 
 							if ( $restricted ) {
-								$args['class'] = $this->ns . '-mode-restrict ' . $this->ns . '-mode-restrict--' . sanitize_title( $restricted );
+								$restricted_class = $this->ns . '-mode-restrict ' . $this->ns . '-mode-restrict--' . sanitize_title( $restricted );
+
+								$restricted_val = isset( $value['restricted_val'] ) ? $value['restricted_val'] : '';
+
+								if ( $restricted_val ) {
+									$restricted_class .= ' ' . $this->ns . '-mode-restrict--' . sanitize_title( $restricted . '- ' . $restricted_val );
+								}
+
+								$args['class'] = $restricted_class;
 							}
+
+							$value = $value['title'];
 						}
 
 						add_settings_field(

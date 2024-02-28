@@ -12,6 +12,7 @@ $ease: ease-in-out;
 
 .wometa-repeater-row {
 	td {
+		vertical-align: middle;
 		padding: 5px;
 
 		&.wometa-repeater-sort {
@@ -25,8 +26,24 @@ $ease: ease-in-out;
 	}
 }
 
+.widefat {
+	.wometa-repeater-row {
+		td,
+		th {
+			padding: 8px 10px;
+		}
+
+		input,
+		select {
+			width: auto;
+		}
+	}
+}
+
 .wowpads-wometa-repeater-controls {
 	line-height: 1;
+	white-space: nowrap;
+
 	button {
 		cursor: pointer;
 		display: inline-block;

@@ -6,20 +6,9 @@ namespace WOAdminFramework;
  */
 class WOForms {
 	/**
-	 * The current text_domain
-	 *
-	 * @var string
-	 */
-	protected $text_domain;
-
-	/**
 	 * __construct()
-	 *
-	 * @param string $text_domain The text domain for your plugin.
 	 */
-	public function __construct( $text_domain = 'default' ) {
-		$this->text_domain = $text_domain;
-	}
+	public function __construct() {}
 
 	/**
 	 * Maybe add a class attribute to something.
@@ -84,7 +73,7 @@ class WOForms {
 			$html  = '<label for="' . esc_attr( $id ) . '"';
 			$html .= $this->maybe_class( $args['classes'] );
 			$html .= '>';
-			$html .= __( wp_kses( $text, $args['allowed_html'] ), $this->text_domain );
+			$html .= wp_kses( $text, $args['allowed_html'] );
 			$html .= '</label>';
 
 		if ( ! $args['display'] ) {
@@ -127,7 +116,7 @@ class WOForms {
 		$html .= '>';
 
 		if ( $args['empty_text'] ) {
-			$html .= '<option value="">' . esc_html( $args['empty_text'], $this->text_domain ) . '</option>';
+			$html .= '<option value="">' . esc_html( $args['empty_text'] ) . '</option>';
 		}
 
 		foreach ( $options as $option_value => $text ) {
@@ -146,7 +135,7 @@ class WOForms {
 				$html .= selected( $option_value, $current_value, false );
 			}
 
-			$html .= '>' . esc_html( $text, $this->text_domain ) . '</option>';
+			$html .= '>' . esc_html( $text ) . '</option>';
 		}
 
 		$html .= '</select>';
@@ -333,9 +322,7 @@ class WOForms {
 				$current_value = array();
 			}
 
-			if ( ! is_array( $current_value ) ) {
-				$current_value = array( $current_value );
-			}
+			$current_value = WOUtilities::arrayify( $current_value );
 
 			if ( substr( $name, -2 ) !== '[]' ) {
 				$name .= '[]';
@@ -409,7 +396,7 @@ class WOForms {
 			$html .= '<' . wp_strip_all_tags( $args['inner_element'] ) . '>';
 		}
 
-		$html .= __( wp_kses( $message, $args['allowed_html'] ), $this->text_domain );
+		$html .= wp_kses( $message, $args['allowed_html'] );
 
 		if ( $args['inner_element'] ) {
 			$html .= '</' . wp_strip_all_tags( $args['inner_element'] ) . '>';
