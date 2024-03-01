@@ -53,13 +53,13 @@ class WOOptions {
 	/**
 	 * Refresh cached option from the database.
 	 *
-	 * @param string $key The key to refresh.
-	 * @param array  $default The default value if option is not found.
+	 * @param string $key The non-namespaced key to refresh.
+	 * @param array  $default_value The default value if option is not found.
 	 *
 	 * @return void
 	 */
-	public function refresh( $key, $default = array() ) {
-		$this->options[ $key ] = get_option( $this->key( $key ), $default );
+	public function refresh( $key, $default_value = array() ) {
+		$this->options[ $key ] = get_option( $this->key( $key ), $default_value );
 	}
 
 	/**
@@ -68,11 +68,11 @@ class WOOptions {
 	 *
 	 * @param string      $option The option key (or sub-option key if part of a group).
 	 * @param string|null $group The option group if one is in use.
-	 * @param mixed       $default The default value if the option is not found.
+	 * @param mixed       $default_value The default value if the option is not found.
 	 *
 	 * @return mixed
 	 */
-	public function get( $option, $group = null, $default = null ) {
+	public function get( $option, $group = null, $default_value = null ) {
 
 		if ( $group !== null ) {
 			if ( ! isset( $this->options[ $group ] ) ) {
@@ -92,7 +92,7 @@ class WOOptions {
 			}
 		}
 
-		return $default;
+		return $default_value;
 	}
 
 	/**
@@ -104,7 +104,13 @@ class WOOptions {
 	 * @return void
 	 */
 	public function delete( $key ) {
-		delete_option( $this->key( $key ) );
+		$option_key = $this->key( $key );
+		delete_option( $option_key );
+
+		if ( isset( $this->options[ $option_key ] ) ) {
+			wo_log( 'option key is now unset from delete.' );
+			unset( $this->options[ $option_key ] );
+		}
 	}
 
 	/**
@@ -119,11 +125,21 @@ class WOOptions {
 	 * @return void
 	 */
 	public function update( $key, $data, $refresh = false ) {
-		update_option( $this->key( $key ), $data );
+		$option_key = $this->key( $key );
+		$update     = update_option( $option_key, $data );
+
+		/**
+		 * Remove the cached option, because the data is incorrect.
+		 */
+		if ( isset( $this->options[ $option_key ] ) ) {
+			unset( $this->options[ $option_key ] );
+		}
 
 		if ( $refresh ) {
 			$this->refresh( $key );
 		}
+
+		return $update;
 	}
 
 	/**
@@ -131,14 +147,16 @@ class WOOptions {
 	 * Allows for use of a callback to calculate the default value.
 	 *
 	 * @param string $key The non-namespaced key to initialize.
-	 * @param mixed  $default The default value to save to the database.
+	 * @param mixed  $default_value The default value to save to the database.
 	 *
 	 * @return void
 	 */
-	public function initialize( $key, $default = array() ) {
-		if ( false == get_option( $this->key( $key ) ) ) {
-			if ( ! empty( $default ) ) {
-				foreach ( $default as $dkey => $value ) {
+	public function initialize( $key, $default_value = array(), $autoload = 'yes' ) {
+		$option_key = $this->key( $key );
+
+		if ( false === get_option( $option_key ) ) {
+			if ( ! empty( $default_value ) ) {
+				foreach ( $default_value as $dkey => $value ) {
 					if ( is_array( $value ) && isset( $value['callback'] ) && count( $value['callback'] ) === 2 ) {
 						try {
 							$class = $value['callback'][0];
@@ -151,7 +169,7 @@ class WOOptions {
 								$value = ( $value ) ? 1 : 0;
 							}
 
-							$default[ $dkey ] = $value;
+							$default_value[ $dkey ] = $value;
 
 						} catch ( \Exception $e ) {
 							error_log( 'Caught exception: ', $e->getMessage(), "\n" );
@@ -159,7 +177,7 @@ class WOOptions {
 					}
 				}
 
-				add_option( $this->key( $key ), $default );
+				add_option( $option_key, $default_value, '', $autoload );
 			}
 		}
 	}
