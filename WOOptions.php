@@ -14,7 +14,7 @@ class WOOptions {
 	protected $options;
 
 	/**
-	 * The namespace of your plugin.
+	 * The ns of your plugin.
 	 *
 	 * @var string
 	 */
@@ -23,7 +23,7 @@ class WOOptions {
 	/**
 	 * __construct()
 	 *
-	 * @param string $ns The namespace for your options.
+	 * @param string $ns The ns for your options.
 	 */
 	public function __construct( $ns ) {
 		$this->ns      = $ns;
@@ -40,9 +40,9 @@ class WOOptions {
 	}
 
 	/**
-	 * Create an option key using the namespace and a string.
+	 * Create an option key using the ns and a string.
 	 *
-	 * @param string $key The key to append to the namespace.
+	 * @param string $key The key to append to the ns.
 	 *
 	 * @return string
 	 */

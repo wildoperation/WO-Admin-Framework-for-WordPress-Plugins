@@ -6,7 +6,7 @@ namespace WOAdminFramework;
  */
 class WOMeta {
 	/**
-	 * The namespace of your plugin.
+	 * The ns of your plugin.
 	 *
 	 * @var string
 	 */
@@ -29,7 +29,7 @@ class WOMeta {
 	/**
 	 * __construct()
 	 *
-	 * @param string $ns The namespace for your meta fields.
+	 * @param string $ns The ns for your meta fields.
 	 */
 	public function __construct( $ns ) {
 		$this->ns       = $ns;
@@ -50,9 +50,9 @@ class WOMeta {
 	}
 
 	/**
-	 * Create a meta key using the namespace and a string.
+	 * Create a meta key using the ns and a string.
 	 *
-	 * @param string $key The key to append to the namespace.
+	 * @param string $key The key to append to the ns.
 	 * @param string $prefix The prefix before the key.
 	 *
 	 * @return string
