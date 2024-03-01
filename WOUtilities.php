@@ -7,6 +7,15 @@ namespace WOAdminFramework;
 class WOUtilities {
 
 	/**
+	 * The current  version of this framework.
+	 *
+	 * @return string
+	 */
+	public static function version() {
+		return '0.1.0';
+	}
+
+	/**
 	 * Determine if $value should be treated as a boolean true or false.
 	 *
 	 * @param mixed $value The value to check.

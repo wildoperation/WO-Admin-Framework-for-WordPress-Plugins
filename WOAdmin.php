@@ -31,7 +31,7 @@ class WOAdmin {
 	 * @return void
 	 */
 	public function enqueue_woadmin_styles() {
-		wp_enqueue_style( 'woadmin-css', $this->assets_url() . 'css/admin.css', array(), '1.0.0' );
+		wp_enqueue_style( 'woadmin-css', $this->assets_url() . 'css/admin.css', array(), WOUtilities::version() );
 	}
 
 	/**

@@ -509,7 +509,7 @@ class WOMeta {
 		wp_enqueue_script( 'jquery-ui-sortable' );
 
 		$handle = 'wometa-repeater';
-		wp_register_script( $handle, $this->woadmin()->assets_url() . 'js/repeater.js', array( 'jquery', 'jquery-ui-core', 'jquery-ui-sortable' ), '1.0.0', array( 'in_footer' => true ) );
+		wp_register_script( $handle, $this->woadmin()->assets_url() . 'js/repeater.js', array( 'jquery', 'jquery-ui-core', 'jquery-ui-sortable' ), WOUtilities::version(), array( 'in_footer' => true ) );
 
 		$sort_handle = $this->repeater_sort_handle();
 
