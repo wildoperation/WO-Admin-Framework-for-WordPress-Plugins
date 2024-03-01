@@ -108,7 +108,6 @@ class WOOptions {
 		delete_option( $option_key );
 
 		if ( isset( $this->options[ $option_key ] ) ) {
-			wo_log( 'option key is now unset from delete.' );
 			unset( $this->options[ $option_key ] );
 		}
 	}
