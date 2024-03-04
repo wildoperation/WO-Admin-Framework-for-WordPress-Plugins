@@ -1,5 +1,5 @@
 jQuery(document).ready(function ($) {
-	$(".wowpads-repeater").each(function () {
+	$(".wo-repeater").each(function () {
 		let isSortable = true;
 		let useArrayKeys = false;
 		let nextKey = 1;

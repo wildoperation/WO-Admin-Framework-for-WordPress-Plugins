@@ -619,6 +619,7 @@ class WOMeta {
 			$args['classes'] = array( $args['classes'] );
 		}
 
+		$args['classes'][] = 'wo-repeater';
 		$args['classes'][] = $this->ns . '-repeater';
 
 		$sort_handle = false;
