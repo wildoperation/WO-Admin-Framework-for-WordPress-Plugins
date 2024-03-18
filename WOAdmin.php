@@ -74,14 +74,30 @@ class WOAdmin {
 	 */
 	public static function sanitize_by_type( $input, $type = 'str' ) {
 		if ( is_array( $input ) ) {
-			$value = array();
+			$value    = array();
+			$is_assoc = false;
 
-			foreach ( $input as $i ) {
+			/**
+			 * If we have a mixed type (array, sometimes not an array, text, number, etc), detect if it's assoc.
+			 * Otherwise, check to see if we expect an assoc array.
+			 */
+			if ( $type === 'mixed' && ! WOUtilities::array_is_list( $input ) ) {
+				$is_assoc = true;
+			} elseif ( strtolower( substr( $type, 0, 5 ) ) === 'assoc' ) {
+				$is_assoc = true;
+				$type     = explode( '_', $type )[1];
+			}
+
+			foreach ( $input as $key => $i ) {
 				if ( empty( $i ) ) {
 					continue;
 				}
 
-				$value[] = self::do_sanitize_by_type( $i, $type );
+				if ( $is_assoc ) {
+					$value[ $key ] = self::do_sanitize_by_type( $i, $type );
+				} else {
+					$value[] = self::do_sanitize_by_type( $i, $type );
+				}
 			}
 		} else {
 			$value = self::do_sanitize_by_type( $input, $type );

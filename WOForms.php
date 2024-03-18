@@ -116,23 +116,28 @@ class WOForms {
 		$html .= '>';
 
 		if ( $args['empty_text'] ) {
-			$html .= '<option value="">' . esc_html( $args['empty_text'] ) . '</option>';
+			$html .= '<option value="" ' . selected( '', $current_value, false ) . '>' . esc_html( $args['empty_text'] ) . '</option>';
 		}
 
 		foreach ( $options as $option_value => $text ) {
-			$disabled = false;
+			$disabled          = false;
+			$this_option_value = $option_value;
 
-			if ( substr( $option_value, 0, 9 ) === 'disabled:' ) {
+			if ( substr( $this_option_value, 0, 9 ) === 'disabled:' ) {
 				$disabled     = true;
-				$option_value = '';
+				$option_value = substr( $this_option_value, 9 );
+			} elseif ( substr( $this_option_value, 0, 16 ) === 'woadmin_divider:' ) {
+				$this_option_value = '';
 			}
 
-			$html .= '<option value="' . esc_attr( $option_value ) . '" ';
+			$html .= '<option value="' . esc_attr( $this_option_value ) . '" ';
 
 			if ( $disabled ) {
 				$html .= 'disabled';
-			} else {
-				$html .= selected( $option_value, $current_value, false );
+			}
+
+			if ( $this_option_value !== '' ) {
+				$html .= selected( $this_option_value, $current_value, false );
 			}
 
 			$html .= '>' . esc_html( $text ) . '</option>';
@@ -335,6 +340,12 @@ class WOForms {
 		foreach ( $options as $value => $text ) {
 			$id = $args['id'] . '_' . $idx;
 
+			$disabled = false;
+			if ( substr( $value, 0, 9 ) === 'disabled:' ) {
+				$disabled = true;
+				$value    = substr( $value, 9 );
+			}
+
 			if ( $args['wrap'] ) {
 				$html .= '<span>';
 			}
@@ -347,8 +358,16 @@ class WOForms {
 				$html .= checked( true, in_array( $value, $current_value ), false );
 			}
 
+			$html .= $this->maybe_disable( $disabled );
+
 			$html .= ' />';
-			$html .= $this->label( $id, $text, array( 'display' => false ) );
+			$html .= $this->label(
+				$id,
+				$text,
+				array(
+					'display' => false,
+				)
+			);
 
 			if ( $args['wrap'] ) {
 				$html .= '</span>';

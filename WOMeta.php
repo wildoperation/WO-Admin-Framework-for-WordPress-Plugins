@@ -248,6 +248,7 @@ class WOMeta {
 			 */
 			$full_key = $this->make_key( $key );
 
+			// phpcs:disable WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing  -- nonce is verified by WOAdmin()->authorize_ajax_action()
 			if ( isset( $_POST[ $full_key ] ) && isset( $allowed_keyvalue['children'] ) ) {
 				/**
 				 * This allowed_keyvalue has children.
@@ -260,6 +261,7 @@ class WOMeta {
 				 * Most often in this scenario, the $_POST value will be an array.
 				 * If it's not, we'll make it one.
 				 */
+				// phpcs:ignore WordPress.Security.ValidatedSanitizedInput -- variable sanitized below; right now we just need it to be an array if it's not.
 				$posteds = WOUtilities::arrayify( $_POST[ $full_key ] );
 
 				foreach ( $posteds as $posted ) {
@@ -312,7 +314,9 @@ class WOMeta {
 				/**
 				 * This is just a normal field. Sanitize and save the value.
 				 */
-				$value = $this->sanitize_meta_input( $allowed_keyvalue, $_POST[ $full_key ] );
+				// phpcs:ignore WordPress.Security.ValidatedSanitizedInput -- Sanitized by sanitize_meta_input.
+				$value = $this->sanitize_meta_input( $allowed_keyvalue, wp_unslash( $_POST[ $full_key ] ) );
+
 			} elseif ( isset( $allowed_keyvalue['type'] ) && $allowed_keyvalue['type'] === 'bool' ) {
 				/**
 				 * If this field wasn't in the post, and it's a bool, we'll default to 0 always.
@@ -502,27 +506,35 @@ class WOMeta {
 	 * @return string
 	 */
 	public function repeater_enqueue() {
+		$handle = 'wometa-repeater';
+
+		if ( wp_script_is( $handle ) ) {
+			return $handle;
+		}
+
 		$this->woadmin()->enqueue_woadmin_styles();
 
 		wp_enqueue_script( 'jquery' );
 		wp_enqueue_script( 'jquery-ui-core' );
 		wp_enqueue_script( 'jquery-ui-sortable' );
 
-		$handle = 'wometa-repeater';
 		wp_register_script( $handle, $this->woadmin()->assets_url() . 'js/repeater.js', array( 'jquery', 'jquery-ui-core', 'jquery-ui-sortable' ), WOUtilities::version(), array( 'in_footer' => true ) );
+		wp_enqueue_script( $handle );
 
 		$sort_handle = $this->repeater_sort_handle();
 
-		wp_localize_script(
-			$handle,
-			'wometa_repeater',
+		$script = 'var wometa_repeater = ' . json_encode(
 			array(
 				'has_sort_handle'      => ( $sort_handle ) ? 'yes' : 'no',
 				'sort_handle_selector' => apply_filters( 'wo_repeater_sort_handle_selector', '.wometa-repeater-sort-icon' ),
 			)
 		);
 
-		wp_enqueue_script( $handle );
+		wp_add_inline_script(
+			$handle,
+			$script,
+			'before'
+		);
 
 		return $handle;
 	}
@@ -591,7 +603,7 @@ class WOMeta {
 	 * @return int
 	 */
 	public function repeater_icon_width() {
-		return intval( apply_filters( 'wo_repeater_draggable_icon_width', 10 ) );
+		return absint( apply_filters( 'wo_repeater_draggable_icon_width', 10 ) );
 	}
 
 	/**

@@ -16,6 +16,19 @@ class WOUtilities {
 	}
 
 	/**
+	 * array_list_list is a native PHP function starting in 8.1, but we're supporting < 8.1.
+	 *
+	 * @return bool
+	 */
+	public static function array_is_list( $arr ) {
+		if ( $arr === array() ) {
+			return true;
+		}
+
+		return array_keys( $arr ) === range( 0, count( $arr ) - 1 );
+	}
+
+	/**
 	 * Determine if $value should be treated as a boolean true or false.
 	 *
 	 * @param mixed $value The value to check.
@@ -60,7 +73,7 @@ class WOUtilities {
 				if ( ! is_bool( $arr ) && ! is_wp_error( $arr ) ) {
 					$arr = array( $arr );
 				}
-			} elseif ( $arr === false || is_wp_error( $arr ) ) {
+			} elseif ( ( $arr === false || is_wp_error( $arr ) ) && ! $force ) {
 				/**
 				 * If we have FALSE or WP_Error, return empty array.
 				 */
@@ -105,9 +118,9 @@ class WOUtilities {
 		}
 
 		if ( is_array( $values ) ) {
-			$values = array_map( 'sanitize_text_field', $values );
+			$values = array_map( 'sanitize_text_field', array_map( 'wp_unslash', $values ) );
 		} elseif ( strpos( $values, ',' ) !== false ) {
-			$values = explode( ',', sanitize_text_field( $values ) );
+			$values = explode( ',', sanitize_text_field( wp_unslash( $values ) ) );
 		}
 
 		if ( ! is_array( $values ) ) {
@@ -161,7 +174,6 @@ class WOUtilities {
 
 		if ( is_array( $values ) ) {
 			$processed_values = array();
-
 			foreach ( $values as $value ) {
 				$processed_values[] = self::do_sanitize_mixed_input( $value );
 			}

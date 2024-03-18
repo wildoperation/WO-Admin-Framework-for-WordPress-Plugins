@@ -174,7 +174,7 @@ class WOSettings extends WOOPtions {
 		}
 
 		if ( $active_tab === null ) {
-			$active_tab = isset( $_REQUEST['tab'] ) ? sanitize_text_field( $_REQUEST['tab'] ) : $tabs[0]['key'];
+			$active_tab = isset( $_REQUEST['tab'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['tab'] ) ) : $tabs[0]['key'];
 		}
 		?>
 		<h2 class="nav-tab-wrapper">
@@ -206,7 +206,7 @@ class WOSettings extends WOOPtions {
 		 * Tabs
 		 */
 		$tabs       = $this->create_tabs_from_settings( $settings, $admin_url );
-		$active_tab = isset( $_GET['tab'] ) ? $_GET['tab'] : $tabs[0]['key'];
+		$active_tab = isset( $_GET['tab'] ) ? sanitize_text_field( wp_unslash( $_GET['tab'] ) ) : $tabs[0]['key'];
 		$this->display_tabs( $tabs, $active_tab );
 
 		foreach ( $tabs as $tab ) {
