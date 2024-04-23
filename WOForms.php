@@ -174,6 +174,7 @@ class WOForms {
 				'max'         => null,
 				'disabled'    => false,
 				'readonly'    => false,
+				'step'        => null,
 			)
 		);
 
@@ -186,6 +187,10 @@ class WOForms {
 
 		if ( $args['placeholder'] ) {
 			$html .= ' placeholder="' . esc_attr( $args['placeholder'] ) . '"';
+		}
+
+		if ( $args['step'] ) {
+			$html .= ' step="' . esc_attr( $args['step'] ) . '"';
 		}
 
 		if ( $args['min'] ) {
@@ -399,7 +404,7 @@ class WOForms {
 		$args = wp_parse_args(
 			$args,
 			array(
-				'classes'       => null,
+				'classes'       => array( 'woforms-message' ),
 				'display'       => true,
 				'allowed_html'  => wp_kses_allowed_html( 'post' ),
 				'element'       => 'p',

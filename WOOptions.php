@@ -96,6 +96,28 @@ class WOOptions {
 	}
 
 	/**
+	 * Get a group of options.
+	 *
+	 * @param string      $option The option key (or sub-option key if part of a group).
+	 * @param string|null $group The option group if one is in use.
+	 * @param mixed       $default_value The default value if the option is not found.
+	 *
+	 * @return mixed
+	 */
+	public function get_group( $group, $default_value = array() ) {
+
+		if ( ! isset( $this->options[ $group ] ) ) {
+			$this->refresh( $group );
+		}
+
+		if ( isset( $this->options[ $group ] ) ) {
+			return $this->options[ $group ];
+		}
+
+		return $default_value;
+	}
+
+	/**
 	 * Delete an option.
 	 * Simply the native WP delete_option function, but allows for use of short key without namespace.
 	 *

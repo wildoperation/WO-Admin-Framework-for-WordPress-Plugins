@@ -79,6 +79,36 @@ $ease: ease-in-out;
 	}
 }
 
+.woadmin-form-inner {
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-top: none;
+	padding: 1rem;
+
+	p.submit {
+		&:last-child {
+			padding-bottom: 0;
+		}
+	}
+
+	h2 {
+		border-top: 1px solid rgba(#c3c4c7, 0.5);
+		padding-top: 2em;
+
+		&:first-of-type {
+			border-top: none;
+			padding-top: 0;
+		}
+	}
+}
+
+.woadmin-nav-tab-wrapper {
+	.nav-tab-active {
+		background-color: #fff;
+		border-bottom-color: #fff;
+	}
+}
+
 .woforms-input-group {
 	display: flex;
 	flex-direction: row;

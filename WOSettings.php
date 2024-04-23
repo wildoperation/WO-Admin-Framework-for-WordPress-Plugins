@@ -115,6 +115,7 @@ class WOSettings extends WOOPtions {
 	 */
 	public function form_end() {
 		?>
+		</div>
 		</form>
 		<?php
 	}
@@ -177,11 +178,12 @@ class WOSettings extends WOOPtions {
 			$active_tab = isset( $_REQUEST['tab'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['tab'] ) ) : $tabs[0]['key'];
 		}
 		?>
-		<h2 class="nav-tab-wrapper">
+		<h2 class="nav-tab-wrapper woadmin-nav-tab-wrapper">
 			<?php foreach ( $tabs as $tab ) : ?>
 				<a href="<?php echo esc_url( $tab['url'] ); ?>" class="nav-tab<?php echo $active_tab === $tab['key'] ? ' nav-tab-active' : ''; ?>"><?php esc_html_e( $tab['text'] ); ?></a>
 			<?php endforeach; ?>
 		</h2>
+		<div class="woadmin-form-inner">
 		<?php
 	}
 
