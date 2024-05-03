@@ -90,21 +90,6 @@ class WOUtilities {
 	}
 
 	/**
-	 * Sanitize an array of ints from the $_REQUEST variable.
-	 *
-	 * @param string $key The key to sanitize from $_REQUEST.
-	 *
-	 * @return array|null
-	 */
-	public static function sanitize_request_ints( $key ) {
-		if ( ! isset( $_REQUEST ) || empty( $_REQUEST ) || ! isset( $_REQUEST[ $key ] ) || ! $_REQUEST[ $key ] ) {
-			return null;
-		}
-
-		return self::sanitize_int_array( $_REQUEST[ $key ] );
-	}
-
-	/**
 	 * Sanitize an array of expected integers.
 	 *
 	 * @param array|string $values The values to sanitize.

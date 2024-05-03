@@ -199,25 +199,34 @@ class WOMeta {
 	/**
 	 * Determine if we have a valid saved post to process.
 	 *
-	 * @param mixed $object Object that was potentially posted for meta processing.
-	 * @param array $nonce The nonce to  verify.
+	 * @param mixed  $obj Object that was potentially posted for meta processing.
+	 * @param array  $nonce The nonce to  verify.
+	 * @param string $capability The capability to check.
 	 *
-	 * @return bool
+	 * @return bool|void
 	 */
-	private function is_posted( $object, $nonce ) {
+	private function is_posted( $obj, $nonce, $capability = 'manage_options' ) {
 		if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
 			return false;
 		}
 
-		if ( isset( $object->post_status ) && ( 'auto-draft' === $object->post_status || 'trash' === $object->post_status ) ) {
+		if ( isset( $obj->post_status ) && ( 'auto-draft' === $obj->post_status || 'trash' === $obj->post_status ) ) {
 			return false;
 		}
 
-		if ( ! isset( $nonce['action'] ) || ! isset( $nonce['name'] ) || ! isset( $_POST[ $nonce['name'] ] ) ) {
+		if ( ! isset( $_POST ) ) {
 			return false;
 		}
 
-		return isset( $_POST ) && ! empty( $_POST ) && wp_verify_nonce( sanitize_key( $_POST[ $nonce['name'] ] ), $nonce['action'] );
+		if ( ! isset( $nonce['action'] ) ||
+			! isset( $nonce['name'] ) ||
+			! isset( $_POST[ $nonce['name'] ] ) ||
+			! wp_verify_nonce( sanitize_key( $_POST[ $nonce['name'] ] ), $nonce['action'] ) ||
+			! current_user_can( $capability ) ) {
+			wp_die();
+		}
+
+		return true;
 	}
 
 	/**
@@ -229,7 +238,19 @@ class WOMeta {
 	 *
 	 * @return void
 	 */
-	private function process_posted_meta( $id, $allowed_keys, $context = 'post' ) {
+	private function process_posted_meta( $id, $allowed_keys, $nonce, $capability, $context = 'post' ) {
+		/**
+		 * Nonce was already checked in $this->is_posted() but we will double check it here to be safe.
+		 */
+		if ( ! isset( $nonce['action'] ) ||
+			! isset( $nonce['name'] ) ||
+			! isset( $_POST ) ||
+			! isset( $_POST[ $nonce['name'] ] ) ||
+			! wp_verify_nonce( sanitize_key( $_POST[ $nonce['name'] ] ), $nonce['action'] ) ||
+			! current_user_can( $capability ) ) {
+			wp_die();
+		}
+
 		/**
 		 * Loop through all allowed keys and their values.
 		 */
@@ -248,7 +269,6 @@ class WOMeta {
 			 */
 			$full_key = $this->make_key( $key );
 
-			// phpcs:disable WordPress.Security.NonceVerification.Recommended, WordPress.Security.NonceVerification.Missing  -- nonce is verified by WOAdmin()->authorize_ajax_action()
 			if ( isset( $_POST[ $full_key ] ) && isset( $allowed_keyvalue['children'] ) ) {
 				/**
 				 * This allowed_keyvalue has children.
@@ -261,8 +281,7 @@ class WOMeta {
 				 * Most often in this scenario, the $_POST value will be an array.
 				 * If it's not, we'll make it one.
 				 */
-				// phpcs:ignore WordPress.Security.ValidatedSanitizedInput -- variable sanitized below; right now we just need it to be an array if it's not.
-				$posteds = WOUtilities::arrayify( $_POST[ $full_key ] );
+				$posteds = WOUtilities::arrayify( wp_unslash( $_POST[ $full_key ] ) );
 
 				foreach ( $posteds as $posted ) {
 					if ( ! empty( $allowed_keyvalue['children'] ) ) {
@@ -314,7 +333,6 @@ class WOMeta {
 				/**
 				 * This is just a normal field. Sanitize and save the value.
 				 */
-				// phpcs:ignore WordPress.Security.ValidatedSanitizedInput -- Sanitized by sanitize_meta_input.
 				$value = $this->sanitize_meta_input( $allowed_keyvalue, wp_unslash( $_POST[ $full_key ] ) );
 
 			} elseif ( isset( $allowed_keyvalue['type'] ) && $allowed_keyvalue['type'] === 'bool' ) {
@@ -362,12 +380,12 @@ class WOMeta {
 	 *
 	 * @return bool
 	 */
-	public function save_posted_metadata( $post, $allowed_keys, $nonce ) {
-		if ( ! $this->is_posted( $post, $nonce ) ) {
+	public function save_posted_metadata( $post, $allowed_keys, $nonce, $capability = 'manage_options' ) {
+		if ( ! $this->is_posted( $post, $nonce, $capability ) ) {
 			return false;
 		}
 
-		$this->process_posted_meta( $post->ID, $allowed_keys, 'post' );
+		$this->process_posted_meta( $post->ID, $allowed_keys, $nonce, $capability, 'post' );
 
 		return true;
 	}
@@ -381,13 +399,13 @@ class WOMeta {
 	 *
 	 * @return bool
 	 */
-	public function save_posted_term_metadata( $term_id, $allowed_keys, $nonce ) {
+	public function save_posted_term_metadata( $term_id, $allowed_keys, $nonce, $capability = 'manage_options' ) {
 
-		if ( ! $term_id || ! $this->is_posted( null, $nonce ) ) {
+		if ( ! $term_id || ! $this->is_posted( null, $nonce, $capability ) ) {
 			return false;
 		}
 
-		$this->process_posted_meta( $term_id, $allowed_keys, 'term' );
+		$this->process_posted_meta( $term_id, $allowed_keys, $nonce, $capability, 'term' );
 
 		return true;
 	}
@@ -523,7 +541,7 @@ class WOMeta {
 
 		$sort_handle = $this->repeater_sort_handle();
 
-		$script = 'var wometa_repeater = ' . json_encode(
+		$script = 'var wometa_repeater = ' . wp_json_encode(
 			array(
 				'has_sort_handle'      => ( $sort_handle ) ? 'yes' : 'no',
 				'sort_handle_selector' => apply_filters( 'wo_repeater_sort_handle_selector', '.wometa-repeater-sort-icon' ),
@@ -582,10 +600,10 @@ class WOMeta {
 		$html .= '</tr>';
 
 		if ( ! $args['display'] ) {
-			return $html;
+			return wp_kses( $html, WOForms::form_elements_allowed_html() );
 		}
 
-		echo $html;
+		echo wp_kses( $html, WOForms::form_elements_allowed_html() );
 	}
 
 	/**
@@ -695,10 +713,10 @@ class WOMeta {
 		$html .= '<tbody>';
 
 		if ( ! $args['display'] ) {
-			return $html;
+			return wp_kses( $html, WOForms::form_elements_allowed_html() );
 		}
 
-		echo $html;
+		echo wp_kses( $html, WOForms::form_elements_allowed_html() );
 	}
 
 	/**
@@ -719,10 +737,10 @@ class WOMeta {
 		$html = '</tbody></table>';
 
 		if ( ! $args['display'] ) {
-			return $html;
+			return wp_kses( $html, WOForms::form_elements_allowed_html() );
 		}
 
-		echo $html;
+		echo wp_kses( $html, WOForms::form_elements_allowed_html() );
 	}
 
 	/**
@@ -772,10 +790,10 @@ class WOMeta {
 		$html .= '</tr>';
 
 		if ( ! $args['display'] ) {
-			return $html;
+			return wp_kses( $html, WOForms::form_elements_allowed_html() );
 		}
 
-		echo $html;
+		echo wp_kses( $html, WOForms::form_elements_allowed_html() );
 	}
 
 	/**
@@ -797,10 +815,10 @@ class WOMeta {
 		$html = '<td>' . $contents . '</td>';
 
 		if ( ! $args['display'] ) {
-			return $html;
+			return wp_kses( $html, WOForms::form_elements_allowed_html() );
 		}
 
-		echo $html;
+		echo wp_kses( $html, WOForms::form_elements_allowed_html() );
 	}
 	/**
 	 * Creates a repeater table for use in metaboxes.
@@ -844,9 +862,9 @@ class WOMeta {
 		$html .= $this->repeater_end();
 
 		if ( ! $args['display'] ) {
-			return $html;
+			return wp_kses( $html, WOForms::form_elements_allowed_html() );
 		}
 
-		echo $html;
+		echo wp_kses( $html, WOForms::form_elements_allowed_html() );
 	}
 }

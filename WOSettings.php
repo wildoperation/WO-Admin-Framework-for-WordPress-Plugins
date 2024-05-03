@@ -82,7 +82,8 @@ class WOSettings extends WOOPtions {
 	}
 
 	/**
-	 * Format the page title
+	 * Format the page title.
+	 * Page title should already be translated.
 	 *
 	 * @param string $title The page title.
 	 *
@@ -90,7 +91,7 @@ class WOSettings extends WOOPtions {
 	 */
 	public function title( $title ) {
 		?>
-		<h2><?php esc_html_e( $title ); ?></h2>
+		<h2><?php echo esc_html( $title ); ?></h2>
 		<?php
 	}
 
@@ -163,6 +164,7 @@ class WOSettings extends WOOPtions {
 
 	/**
 	 * Displays settings tabs on a page.
+	 * Tab text should already be translated.
 	 *
 	 * @param array       $tabs An array of tabs to display.
 	 * @param null|string $active_tab The currently active tab.
@@ -173,14 +175,10 @@ class WOSettings extends WOOPtions {
 		if ( empty( $tabs ) ) {
 			return;
 		}
-
-		if ( $active_tab === null ) {
-			$active_tab = isset( $_REQUEST['tab'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['tab'] ) ) : $tabs[0]['key'];
-		}
 		?>
 		<h2 class="nav-tab-wrapper woadmin-nav-tab-wrapper">
 			<?php foreach ( $tabs as $tab ) : ?>
-				<a href="<?php echo esc_url( $tab['url'] ); ?>" class="nav-tab<?php echo $active_tab === $tab['key'] ? ' nav-tab-active' : ''; ?>"><?php esc_html_e( $tab['text'] ); ?></a>
+				<a href="<?php echo esc_url( $tab['url'] ); ?>" class="nav-tab<?php echo $active_tab === $tab['key'] ? ' nav-tab-active' : ''; ?>"><?php echo esc_html( $tab['text'] ); ?></a>
 			<?php endforeach; ?>
 		</h2>
 		<div class="woadmin-form-inner">
@@ -191,7 +189,6 @@ class WOSettings extends WOOPtions {
 	 * Creates a complete settings page.
 	 *
 	 * @param string $admin_title The title of the page.
-	 * @param string $admin_action The form action.
 	 * @param string $admin_url The URL of the settings page.
 	 * @param array  $settings A settings array from which to build our settings.
 	 *
@@ -207,7 +204,8 @@ class WOSettings extends WOOPtions {
 		/**
 		 * Tabs
 		 */
-		$tabs       = $this->create_tabs_from_settings( $settings, $admin_url );
+		$tabs = $this->create_tabs_from_settings( $settings, $admin_url );
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Ignoring because we aren't saving any data and this functiopn is called by add_submenu_page (which checks capabilities)
 		$active_tab = isset( $_GET['tab'] ) ? sanitize_text_field( wp_unslash( $_GET['tab'] ) ) : $tabs[0]['key'];
 		$this->display_tabs( $tabs, $active_tab );
 

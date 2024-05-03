@@ -10,6 +10,52 @@ class WOForms {
 	 */
 	public function __construct() {}
 
+	public static function form_elements_allowed_html() {
+		return array_merge(
+			wp_kses_allowed_html( 'post' ),
+			array(
+				'label'    => array(
+					'class' => array(),
+					'for'   => array(),
+				),
+				'select'   => array(
+					'class'    => array(),
+					'id'       => array(),
+					'name'     => array(),
+					'disabled' => array(),
+				),
+				'option'   => array(
+					'value'    => array(),
+					'disabled' => array(),
+					'selected' => array(),
+				),
+				'optgroup' => array(),
+				'input'    => array(
+					'type'        => array(),
+					'value'       => array(),
+					'name'        => array(),
+					'id'          => array(),
+					'class'       => array(),
+					'placeholder' => array(),
+					'step'        => array(),
+					'min'         => array(),
+					'max'         => array(),
+					'readonly'    => array(),
+					'disabled'    => array(),
+					'checked'     => array(),
+					'selected'    => array(),
+				),
+				'textarea' => array(
+					'class' => array(),
+					'rows'  => array(),
+					'cols'  => array(),
+					'name'  => array(),
+					'id'    => array(),
+				),
+			)
+		);
+	}
+
 	/**
 	 * Maybe add a class attribute to something.
 	 *
@@ -60,27 +106,20 @@ class WOForms {
 			array(
 				'classes'      => null,
 				'display'      => true,
-				'allowed_html' => array(
-					'br'     => array( 'class' => array() ),
-					'em'     => array( 'class' => array() ),
-					'strong' => array( 'class' => array() ),
-					'span'   => array( 'class' => array() ),
-					'code'   => array( 'class' => array() ),
-				),
 			)
 		);
 
-			$html  = '<label for="' . esc_attr( $id ) . '"';
-			$html .= $this->maybe_class( $args['classes'] );
-			$html .= '>';
-			$html .= wp_kses( $text, $args['allowed_html'] );
-			$html .= '</label>';
+		$html  = '<label for="' . esc_attr( $id ) . '"';
+		$html .= $this->maybe_class( $args['classes'] );
+		$html .= '>';
+		$html .= $text;
+		$html .= '</label>';
 
 		if ( ! $args['display'] ) {
-			return $html;
+			return wp_kses( $html, self::form_elements_allowed_html() );
 		}
 
-		echo $html;
+		echo wp_kses( $html, self::form_elements_allowed_html() );
 	}
 
 	/**
@@ -146,10 +185,10 @@ class WOForms {
 		$html .= '</select>';
 
 		if ( ! $args['display'] ) {
-			return $html;
+			return wp_kses( $html, self::form_elements_allowed_html() );
 		}
 
-		echo $html;
+		echo wp_kses( $html, self::form_elements_allowed_html() );
 	}
 
 	/**
@@ -210,10 +249,10 @@ class WOForms {
 		$html .= ' />';
 
 		if ( ! $args['display'] ) {
-			return $html;
+			return wp_kses( $html, self::form_elements_allowed_html() );
 		}
 
-		echo $html;
+		echo wp_kses( $html, self::form_elements_allowed_html() );
 	}
 
 	/**
@@ -251,6 +290,7 @@ class WOForms {
 			return $html;
 		}
 
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Intentionally allowing any HTML or script codes as $current_value of textareas.
 		echo $html;
 	}
 
@@ -285,10 +325,10 @@ class WOForms {
 		$html .= '/>';
 
 		if ( ! $args['display'] ) {
-			return $html;
+			return wp_kses( $html, self::form_elements_allowed_html() );
 		}
 
-		echo $html;
+		echo wp_kses( $html, self::form_elements_allowed_html() );
 	}
 
 	/**
@@ -386,10 +426,10 @@ class WOForms {
 		}
 
 		if ( ! $args['display'] ) {
-			return $html;
+			return wp_kses( $html, self::form_elements_allowed_html() );
 		}
 
-		echo $html;
+		echo wp_kses( $html, self::form_elements_allowed_html() );
 	}
 
 	/**
@@ -406,7 +446,7 @@ class WOForms {
 			array(
 				'classes'       => array( 'woforms-message' ),
 				'display'       => true,
-				'allowed_html'  => wp_kses_allowed_html( 'post' ),
+				'allowed_html'  => self::form_elements_allowed_html(),
 				'element'       => 'p',
 				'inner_element' => null,
 			)
@@ -420,7 +460,7 @@ class WOForms {
 			$html .= '<' . wp_strip_all_tags( $args['inner_element'] ) . '>';
 		}
 
-		$html .= wp_kses( $message, $args['allowed_html'] );
+		$html .= $message;
 
 		if ( $args['inner_element'] ) {
 			$html .= '</' . wp_strip_all_tags( $args['inner_element'] ) . '>';
@@ -429,9 +469,9 @@ class WOForms {
 		$html .= '</' . wp_strip_all_tags( $args['element'] ) . '>';
 
 		if ( ! $args['display'] ) {
-			return $html;
+			return wp_kses( $html, $args['allowed_html'] );
 		}
 
-		echo $html;
+		echo wp_kses( $html, $args['allowed_html'] );
 	}
 }
