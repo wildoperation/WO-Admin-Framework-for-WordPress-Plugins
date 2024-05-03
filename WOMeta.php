@@ -223,7 +223,7 @@ class WOMeta {
 			! isset( $_POST[ $nonce['name'] ] ) ||
 			! wp_verify_nonce( sanitize_key( $_POST[ $nonce['name'] ] ), $nonce['action'] ) ||
 			! current_user_can( $capability ) ) {
-			wp_die();
+			return false;
 		}
 
 		return true;
@@ -240,7 +240,7 @@ class WOMeta {
 	 */
 	private function process_posted_meta( $id, $allowed_keys, $nonce, $capability, $context = 'post' ) {
 		/**
-		 * Nonce was already checked in $this->is_posted() but we will double check it here to be safe.
+		 * Nonce was already checked in $this->is_posted() but that function does not wp_die().
 		 */
 		if ( ! isset( $nonce['action'] ) ||
 			! isset( $nonce['name'] ) ||
@@ -570,9 +570,10 @@ class WOMeta {
 		$args = wp_parse_args(
 			$args,
 			array(
-				'classes' => array(),
-				'display' => true,
-				'message' => null,
+				'classes'               => array(),
+				'display'               => true,
+				'message'               => null,
+				'allow_unfiltered_html' => false,
 			)
 		);
 
@@ -599,11 +600,16 @@ class WOMeta {
 		$html .= '<td>' . $td . '</td>';
 		$html .= '</tr>';
 
-		if ( ! $args['display'] ) {
-			return wp_kses( $html, WOForms::form_elements_allowed_html() );
+		if ( $args['allow_unfiltered_html'] !== true ) {
+			$html = wp_kses( $html, WOForms::form_elements_allowed_html() );
 		}
 
-		echo wp_kses( $html, WOForms::form_elements_allowed_html() );
+		if ( ! $args['display'] ) {
+			return $html;
+		}
+
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Output conditionally escaped for both return and echo on line 604.
+		echo $html;
 	}
 
 	/**
@@ -824,7 +830,7 @@ class WOMeta {
 	 * Creates a repeater table for use in metaboxes.
 	 *
 	 * @param array $columns An array of columns for this table.
-	 * @param array $rows An array of arrays; Individual table cells contained in each row
+	 * @param array $rows An array of arrays; Individual table cells contained in each row.
 	 * @param array $args Optional arguments for the repeater table.
 	 *
 	 * @return string|void

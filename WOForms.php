@@ -106,20 +106,28 @@ class WOForms {
 			array(
 				'classes'      => null,
 				'display'      => true,
+				'allowed_html' => array(
+					'br'     => array( 'class' => array() ),
+					'em'     => array( 'class' => array() ),
+					'strong' => array( 'class' => array() ),
+					'span'   => array( 'class' => array() ),
+					'code'   => array( 'class' => array() ),
+				),
 			)
 		);
 
 		$html  = '<label for="' . esc_attr( $id ) . '"';
 		$html .= $this->maybe_class( $args['classes'] );
 		$html .= '>';
-		$html .= $text;
+		$html .= wp_kses( $text, $args['allowed_html'] );
 		$html .= '</label>';
 
 		if ( ! $args['display'] ) {
-			return wp_kses( $html, self::form_elements_allowed_html() );
+			return $html;
 		}
 
-		echo wp_kses( $html, self::form_elements_allowed_html() );
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- The framework has no context of what the plugin is doing and unsafe HTML may be desired.
+		echo $html;
 	}
 
 	/**
@@ -185,10 +193,11 @@ class WOForms {
 		$html .= '</select>';
 
 		if ( ! $args['display'] ) {
-			return wp_kses( $html, self::form_elements_allowed_html() );
+			return $html;
 		}
 
-		echo wp_kses( $html, self::form_elements_allowed_html() );
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- The framework has no context of what the plugin is doing and unsafe HTML may be desired.
+		echo $html;
 	}
 
 	/**
@@ -249,10 +258,11 @@ class WOForms {
 		$html .= ' />';
 
 		if ( ! $args['display'] ) {
-			return wp_kses( $html, self::form_elements_allowed_html() );
+			return $html;
 		}
 
-		echo wp_kses( $html, self::form_elements_allowed_html() );
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- The framework has no context of what the plugin is doing and unsafe HTML may be desired.
+		echo $html;
 	}
 
 	/**
@@ -290,7 +300,7 @@ class WOForms {
 			return $html;
 		}
 
-		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Intentionally allowing any HTML or script codes as $current_value of textareas.
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- The framework has no context of what the plugin is doing and unsafe HTML may be desired.
 		echo $html;
 	}
 
@@ -325,10 +335,11 @@ class WOForms {
 		$html .= '/>';
 
 		if ( ! $args['display'] ) {
-			return wp_kses( $html, self::form_elements_allowed_html() );
+			return $html;
 		}
 
-		echo wp_kses( $html, self::form_elements_allowed_html() );
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- The framework has no context of what the plugin is doing and unsafe HTML may be desired.
+		echo $html;
 	}
 
 	/**
@@ -426,10 +437,11 @@ class WOForms {
 		}
 
 		if ( ! $args['display'] ) {
-			return wp_kses( $html, self::form_elements_allowed_html() );
+			return $html;
 		}
 
-		echo wp_kses( $html, self::form_elements_allowed_html() );
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- The framework has no context of what the plugin is doing and unsafe HTML may be desired.
+		echo $html;
 	}
 
 	/**
