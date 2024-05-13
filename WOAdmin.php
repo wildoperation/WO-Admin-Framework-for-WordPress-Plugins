@@ -160,7 +160,7 @@ class WOAdmin {
 
 			case 'richcontent':
 			case 'editor':
-				$value = ( self::allow_unfiltered_html() ) ? $input : wp_kses( $input, wp_kses_allowed_html( 'post' ) );
+				$value = ( self::allow_unfiltered_html() ) ? $input : wp_kses_post( $input );
 				break;
 
 			case 'mixed':
@@ -178,12 +178,15 @@ class WOAdmin {
 
 	/**
 	 * Check if unfiltered HTML is allowed.
-	 * TODO: Account for multi-site
 	 *
 	 * @return bool
 	 */
 	public static function allow_unfiltered_html() {
 		if ( defined( 'DISALLOW_UNFILTERED_HTML' ) && DISALLOW_UNFILTERED_HTML ) {
+			return false;
+		}
+
+		if ( ! current_user_can( 'unfiltered_html' ) ) {
 			return false;
 		}
 
