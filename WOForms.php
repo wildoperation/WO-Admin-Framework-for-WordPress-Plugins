@@ -223,6 +223,7 @@ class WOForms {
 				'disabled'    => false,
 				'readonly'    => false,
 				'step'        => null,
+				'accept'      => null,
 			)
 		);
 
@@ -247,6 +248,10 @@ class WOForms {
 
 		if ( $args['max'] ) {
 			$html .= ' max="' . esc_attr( $args['max'] ) . '"';
+		}
+
+		if ( $args['accept'] ) {
+			$html .= ' accept="' . esc_attr( $args['accept'] ) . '"';
 		}
 
 		$html .= $this->maybe_disable( $args['disabled'] );

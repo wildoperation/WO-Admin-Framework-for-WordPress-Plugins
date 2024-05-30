@@ -103,9 +103,13 @@ class WOSettings extends WOOPtions {
 	 *
 	 * @return void
 	 */
-	public function form_start( $action = 'options.php', $method = 'post' ) {
+	public function form_start( $action = 'options.php', $method = 'post', $formdata = false ) {
 		?>
-		<form method="<?php echo esc_attr( $method ); ?>" action="<?php echo esc_url( $action ); ?>">
+		<form method="<?php echo esc_attr( $method ); ?>" action="<?php echo esc_url( $action ); ?>"
+								<?php
+								if ( $formdata ) :
+									?>
+			enctype="multipart/form-data"<?php endif; ?>>
 		<?php
 	}
 
@@ -176,11 +180,11 @@ class WOSettings extends WOOPtions {
 			return;
 		}
 		?>
-		<h2 class="nav-tab-wrapper woadmin-nav-tab-wrapper">
+		<div class="nav-tab-wrapper woadmin-nav-tab-wrapper">
 			<?php foreach ( $tabs as $tab ) : ?>
 				<a href="<?php echo esc_url( $tab['url'] ); ?>" class="nav-tab<?php echo $active_tab === $tab['key'] ? ' nav-tab-active' : ''; ?>"><?php echo esc_html( $tab['text'] ); ?></a>
 			<?php endforeach; ?>
-		</h2>
+		</div>
 		<div class="woadmin-form-inner">
 		<?php
 	}

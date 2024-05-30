@@ -234,6 +234,8 @@ class WOMeta {
 	 *
 	 * @param int    $id The posted object ID for a post, term, etc.
 	 * @param array  $allowed_keys The allowed key/value set to use while processing.
+	 * @param array  $nonce The nonce name and action to check.
+	 * @param string $capability The capability required.
 	 * @param string $context The context of the post; term of post.
 	 *
 	 * @return void

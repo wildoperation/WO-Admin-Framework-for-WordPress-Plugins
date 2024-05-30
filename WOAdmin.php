@@ -139,11 +139,13 @@ class WOAdmin {
 			case 'integers':
 			case 'int':
 			case 'ints':
-				if ( ( $type === 'ints' || $type == 'integers' ) && ( is_string( $input ) && strpos( $input, ',' ) !== false ) ) {
+			case 'timestamp':
+			case 'timestamps':
+				if ( ( $type === 'ints' || $type === 'integers' || $type === 'timestamps' ) && ( is_string( $input ) && strpos( $input, ',' ) !== false ) ) {
 					$input = explode( ',', $input );
 				}
 
-				if ( is_array( $input ) || ( $input === null && ( $type === 'ints' || $type === 'integers' ) ) ) {
+				if ( is_array( $input ) || ( $input === null && ( $type === 'ints' || $type === 'integers' || $type === 'timestamps' ) ) ) {
 					$value = WOUtilities::sanitize_int_array( $input, true );
 				} else {
 					$value = ( ! $input || $input === null ) ? null : intval( wp_strip_all_tags( $input ) );
