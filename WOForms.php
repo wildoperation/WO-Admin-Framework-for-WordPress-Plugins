@@ -107,6 +107,12 @@ class WOForms {
 				'classes'      => null,
 				'display'      => true,
 				'allowed_html' => array(
+					'a'      => array(
+						'class'  => array(),
+						'target' => array(),
+						'rel'    => array(),
+						'href'   => array(),
+					),
 					'br'     => array( 'class' => array() ),
 					'em'     => array( 'class' => array() ),
 					'strong' => array( 'class' => array() ),
