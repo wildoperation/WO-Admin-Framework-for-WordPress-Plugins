@@ -271,6 +271,46 @@ class WOMeta {
 			 */
 			$full_key = $this->make_key( $key );
 
+			/**
+			 * Check if this field requires a specific parent field to be set and have a set value.
+			 * This prevents unnecessary meta from being saved to the database.
+			 */
+			if ( isset( $allowed_keyvalue['required'] ) && ! empty( $allowed_keyvalue['required'] ) ) {
+				$required_found = false;
+
+				foreach ( $allowed_keyvalue['required'] as $required_key => $required_value ) {
+					if ( ! is_array( $required_value ) ) {
+						$required_value = array( $required_value );
+					}
+
+					$required_allowed_keyvalue = isset( $allowed_keys[ $required_key ] ) ? $allowed_keys[ $required_key ] : false;
+
+					if ( ! $required_allowed_keyvalue ) {
+						continue;
+					}
+
+					$full_required_key = $this->make_key( $required_key );
+					if ( isset( $_POST[ $full_required_key ] ) ) {
+						$required_possted_value = $this->sanitize_meta_input( $required_allowed_keyvalue, wp_unslash( $_POST[ $full_required_key ] ) );
+
+						if ( in_array( $required_possted_value, $required_value, true ) ) {
+							$required_found = true;
+							break;
+						}
+					}
+				}
+
+				if ( ! $required_found ) {
+					if ( $context === 'term' ) {
+						delete_term_meta( $id, $full_key );
+					} else {
+						delete_post_meta( $id, $full_key );
+					}
+
+					continue;
+				}
+			}
+
 			if ( isset( $_POST[ $full_key ] ) && isset( $allowed_keyvalue['children'] ) ) {
 				/**
 				 * This allowed_keyvalue has children.
