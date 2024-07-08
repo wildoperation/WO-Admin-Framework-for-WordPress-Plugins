@@ -373,19 +373,13 @@ class WOForms {
 		$args = wp_parse_args(
 			$args,
 			array(
-				'classes'    => array(),
+				'classes'    => array( 'woforms-input-group' ),
 				'display'    => true,
 				'id'         => null,
 				'empty_text' => null,
 				'wrap'       => true,
 			)
 		);
-
-		if ( ! is_array( $args['classes'] ) ) {
-			$args['classes'] = array( $args['classes'] );
-		}
-
-		$args['classes'] = array_merge( $args['classes'], array( 'woforms-input-group' ) );
 
 		if ( ! $args['id'] ) {
 			$args['id'] = str_replace( '[]', '', $name );
@@ -473,19 +467,13 @@ class WOForms {
 		$args = wp_parse_args(
 			$args,
 			array(
-				'classes'       => array(),
+				'classes'       => array( 'woforms-message' ),
 				'display'       => true,
 				'allowed_html'  => self::form_elements_allowed_html(),
 				'element'       => 'p',
 				'inner_element' => null,
 			)
 		);
-
-		if ( ! is_array( $args['classes'] ) ) {
-			$args['classes'] = array( $args['classes'] );
-		}
-
-		$args['classes'] = array_merge( $args['classes'], array( 'woforms-message' ) );
 
 		$html  = '<' . wp_strip_all_tags( $args['element'] );
 		$html .= $this->maybe_class( $args['classes'] );
