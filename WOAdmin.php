@@ -30,8 +30,36 @@ class WOAdmin {
 	 *
 	 * @return void
 	 */
-	public function enqueue_woadmin_styles() {
-		wp_enqueue_style( 'woadmin', $this->assets_url() . 'css/admin.css', array(), WOUtilities::version() );
+	public function enqueue_woadmin_styles( $extras = array() ) {
+		if ( ! empty( $extras ) ) {
+			foreach ( $extras as $extra ) {
+				wp_enqueue_style( $extra );
+			}
+		}
+
+		wp_enqueue_style( 'woadmin', $this->assets_url() . 'css/admin.css', $extras, WOUtilities::version() );
+	}
+
+	/**
+	 * Enqueue woadmin scripts.
+	 * Current $media is optional, but it's also the only script used.
+	 *
+	 * @param array $scripts The scripts to enqueue.
+	 *
+	 * @return void
+	 */
+	public function enqueue_woadmin_scripts( $scripts = array() ) {
+		if ( in_array( 'media', $scripts, true ) ) {
+			wp_enqueue_media();
+			wp_register_script( 'woadmin-media', $this->assets_url() . 'js/media.js', array( 'jquery' ) );
+			wp_enqueue_script( 'woadmin-media' );
+		}
+
+		if ( in_array( 'color-picker', $scripts, true ) ) {
+			wp_enqueue_script( 'wp-color-picker' );
+			wp_register_script( 'woadmin-color-picker', $this->assets_url() . 'js/color-picker.js', array( 'jquery', 'wp-color-picker' ) );
+			wp_enqueue_script( 'woadmin-color-picker' );
+		}
 	}
 
 	/**

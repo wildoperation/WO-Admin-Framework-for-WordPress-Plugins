@@ -401,6 +401,95 @@ class WOSettings extends WOOPtions {
 	}
 
 	/**
+	 * Creates an input of specified $type on a settings page.
+	 *
+	 * @param string $id Form field ID.
+	 * @param mixed  $current_value The current value of the input.
+	 * @param array  $args Optional args to pass to WOForms.
+	 *
+	 * @return string
+	 */
+	public function file( $id, $current_value, $args = array() ) {
+		$name       = $this->name( $id );
+		$args['id'] = $this->id( $id );
+
+		return $this->wo_forms->input( $name, $current_value, 'file', $args );
+	}
+
+	/**
+	 * Creates an input of specified $type on a settings page.
+	 *
+	 * @param string $id Form field ID.
+	 * @param mixed  $current_value The current value of the input.
+	 * @param array  $args Optional args to pass to WOForms.
+	 *
+	 * @return string
+	 */
+	public function color( $id, $current_value, $args = array() ) {
+		$name            = $this->name( $id );
+		$args['id']      = $this->id( $id );
+		$args['classes'] = array( 'woadmin-color-picker' );
+		$args['data']    = array(
+			'default-color' => isset( $args['default_color'] ) ? $args['default_color'] : '#ffffff',
+		);
+
+		return $this->wo_forms->input( $name, $current_value, 'text', $args );
+	}
+
+	/**
+	 * Creates an input of specified $type on a settings page.
+	 *
+	 * @param string $id Form field ID.
+	 * @param mixed  $current_value The current value of the input.
+	 * @param array  $args Optional args to pass to WOForms.
+	 *
+	 * @return string
+	 */
+	public function media( $id, $current_value, $args = array() ) {
+		$name                = $this->name( $id );
+		$args['id']          = $this->id( $id );
+		$args['display']     = false;
+		$args['classes']     = array( 'woadmin-media-input' );
+		$args['button_text'] = isset( $args['button_text'] ) ? $args['button_text'] : __( 'Select File', 'wo-admin-framework' );
+
+		$input  = '<div class="woadmin-media-upload">';
+		$input .= $this->wo_forms->input( $name, $current_value, 'hidden', $args );
+		$input .= '<button class="woadmin-media-button button">' . esc_html( $args['button_text'] ) . '</button>';
+		$input .= '</div>';
+
+		return $input;
+	}
+
+	/**
+	 * Creates an input of specified $type on a settings page.
+	 *
+	 * @param string $id Form field ID.
+	 * @param mixed  $current_value The current value of the input.
+	 * @param array  $args Optional args to pass to WOForms.
+	 *
+	 * @return string
+	 */
+	public function image( $id, $current_value, $args = array() ) {
+		$name       = $this->name( $id );
+		$args['id'] = $this->id( $id );
+
+		$current_value = isset( $current_value ) ? intval( $current_value ) : null;
+
+		$input = $this->media( $id, $current_value, $args );
+
+		$input .= '<div class="woadmin-media-preview">';
+		if ( $current_value ) {
+			$attach_url = wp_get_attachment_image_url( $current_value, 'thumbnail' );
+			$input     .= '<img src="' . esc_url( $attach_url ) . '" alt="" />';
+			$input     .= '<button class="woadmin-media-remove">' . __( 'X', 'wo-admin-framework' ) . '</button>';
+		}
+
+		$input .= '</div>';
+
+		echo $input;
+	}
+
+	/**
 	 * Creates a group of checkboxes on a settings page.
 	 *
 	 * @param string $id Form field ID.

@@ -230,6 +230,7 @@ class WOForms {
 				'readonly'    => false,
 				'step'        => null,
 				'accept'      => null,
+				'data'        => array(),
 			)
 		);
 
@@ -258,6 +259,12 @@ class WOForms {
 
 		if ( $args['accept'] ) {
 			$html .= ' accept="' . esc_attr( $args['accept'] ) . '"';
+		}
+
+		if ( ! empty( $args['data'] ) ) {
+			foreach ( $args['data'] as $key => $value ) {
+				$html .= ' data-' . esc_attr( $key ) . '="' . esc_attr( $value ) . '"';
+			}
 		}
 
 		$html .= $this->maybe_disable( $args['disabled'] );
