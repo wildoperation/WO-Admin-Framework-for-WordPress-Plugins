@@ -106,6 +106,7 @@ class WOForms {
 			array(
 				'classes'      => null,
 				'display'      => true,
+				'close'        => true,
 				'allowed_html' => array(
 					'a'      => array(
 						'class'  => array(),
@@ -125,8 +126,14 @@ class WOForms {
 		$html  = '<label for="' . esc_attr( $id ) . '"';
 		$html .= $this->maybe_class( $args['classes'] );
 		$html .= '>';
-		$html .= wp_kses( $text, $args['allowed_html'] );
-		$html .= '</label>';
+
+		if ( $text ) {
+			$html .= wp_kses( $text, $args['allowed_html'] );
+		}
+
+		if ( $args['close'] ) {
+			$html .= '</label>';
+		}
 
 		if ( ! $args['display'] ) {
 			return $html;
@@ -263,7 +270,7 @@ class WOForms {
 
 		if ( ! empty( $args['data'] ) ) {
 			foreach ( $args['data'] as $key => $value ) {
-				$html .= ' data-' . esc_attr( $key ) . '="' . esc_attr( $value ) . '"';
+				$html .= ' data-' . esc_html( $key ) . '="' . esc_attr( $value ) . '"';
 			}
 		}
 
@@ -380,11 +387,13 @@ class WOForms {
 		$args = wp_parse_args(
 			$args,
 			array(
-				'classes'    => array( 'woforms-input-group' ),
-				'display'    => true,
-				'id'         => null,
-				'empty_text' => null,
-				'wrap'       => true,
+				'classes'      => array( 'woforms-input-group' ),
+				'display'      => true,
+				'label_wrap'   => false,
+				'text_classes' => array(),
+				'id'           => null,
+				'empty_text'   => null,
+				'wrap'         => true,
 			)
 		);
 
@@ -394,6 +403,13 @@ class WOForms {
 
 		if ( $args['classes'] && ! $args['wrap'] ) {
 			$args['wrap'] = true;
+		}
+
+		if ( $args['label_wrap'] ) {
+			$args['wrap'] = true;
+			$wrap_element = 'label';
+		} else {
+			$wrap_element = 'span';
 		}
 
 		if ( $type === 'checkbox' ) {
@@ -421,7 +437,18 @@ class WOForms {
 			}
 
 			if ( $args['wrap'] ) {
-				$html .= '<span>';
+				if ( $wrap_element !== 'label' ) {
+					$html .= '<' . $wrap_element . '>';
+				} else {
+					$html .= $this->label(
+						$id,
+						'',
+						array(
+							'display' => false,
+							'close'   => false,
+						)
+					);
+				}
 			}
 
 			$html .= '<input type="' . esc_attr( $type ) . '" id="' . esc_attr( $id ) . '" name="' . esc_attr( $name ) . '" value="' . esc_attr( $value ) . '"';
@@ -435,16 +462,37 @@ class WOForms {
 			$html .= $this->maybe_disable( $disabled );
 
 			$html .= ' />';
-			$html .= $this->label(
-				$id,
-				$text,
-				array(
-					'display' => false,
-				)
-			);
+
+			if ( ! $args['label_wrap'] ) {
+				$html .= $this->label(
+					$id,
+					$text,
+					array(
+						'display' => false,
+						'classes' => $args['text_classes'],
+					)
+				);
+			} else {
+				$html .= '<span' . $this->maybe_class( $args['text_classes'] ) . '>' . wp_kses(
+					$text,
+					array(
+						'a'      => array(
+							'class'  => array(),
+							'target' => array(),
+							'rel'    => array(),
+							'href'   => array(),
+						),
+						'br'     => array( 'class' => array() ),
+						'em'     => array( 'class' => array() ),
+						'strong' => array( 'class' => array() ),
+						'span'   => array( 'class' => array() ),
+						'code'   => array( 'class' => array() ),
+					)
+				) . '</span>';
+			}
 
 			if ( $args['wrap'] ) {
-				$html .= '</span>';
+				$html .= '</' . $wrap_element . '>';
 			}
 
 			++$idx;
