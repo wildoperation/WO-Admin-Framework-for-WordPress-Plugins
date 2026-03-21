@@ -198,7 +198,7 @@ class WOSettings extends WOOPtions {
 	 *
 	 * @return void
 	 */
-	public function settings_page( $admin_title, $admin_url, $settings ) {
+	public function settings_page( $admin_title, $admin_url, $settings, $footer_content = array() ) {
 		$this->start();
 		$this->title( $admin_title );
 		$this->form_start();
@@ -213,19 +213,54 @@ class WOSettings extends WOOPtions {
 		$active_tab = isset( $_GET['tab'] ) ? sanitize_text_field( wp_unslash( $_GET['tab'] ) ) : $tabs[0]['key'];
 		$this->display_tabs( $tabs, $active_tab );
 
+		$active_tab_has_fields = false;
+
 		foreach ( $tabs as $tab ) {
 			if ( $active_tab !== $tab['key'] ) {
 				continue;
 			}
-
 			settings_fields( $tab['key'] );
 			do_settings_sections( $tab['key'] );
+		}
+
+		foreach ( $settings as $key => $group ) {
+			if ( $this->key( $key ) !== $active_tab ) {
+				continue;
+			}
+
+			if ( ! empty( $group['sections'] ) ) {
+				foreach ( $group['sections'] as $section ) {
+					if ( ! empty( $section['fields'] ) ) {
+						$active_tab_has_fields = true;
+						break;
+					}
+				}
+			}
+
+			break;
 		}
 
 		/**
 		 * End page
 		 */
-		submit_button();
+		if ( $active_tab_has_fields ) {
+			submit_button();
+		}
+
+		if ( ! empty( $footer_content ) ) {
+			foreach ( $footer_content as $key => $callback ) {
+				if ( $key !== $active_tab ) {
+					continue;
+				}
+				if ( is_callable( $callback ) ) {
+					?>
+					<div class="woadmin-footer-content">
+					<?php call_user_func( $callback ); ?>
+					</div>
+					<?php
+				}
+			}
+		}
 		$this->form_end();
 		$this->end();
 	}
