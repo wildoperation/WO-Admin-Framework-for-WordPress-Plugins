@@ -354,10 +354,10 @@ class WOForms {
 			$args['id'] = $name;
 		}
 
-		$html  = '<input type="checkbox" value="' . esc_attr( $checked_value ) . '" name="' . esc_attr( $name ) . '" id="' . esc_attr( $args['id'] ) . '" ' . checked( $checked_value, $current_value, false );
+		$html  = '<input type="checkbox" value="' . esc_attr( $checked_value ) . '" name="' . esc_attr( $name ) . '" id="' . esc_attr( $args['id'] ) . '"' . checked( $checked_value, $current_value, false );
 		$html .= $this->maybe_class( $args['classes'] );
 		$html .= $this->maybe_disable( $args['disabled'] );
-		$html .= '/>';
+		$html .= ' />';
 
 		if ( ! $args['display'] ) {
 			return $html;
