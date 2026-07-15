@@ -104,6 +104,7 @@ class WOForms {
 		$args = wp_parse_args(
 			$args,
 			array(
+				'for'          => null,
 				'classes'      => null,
 				'display'      => true,
 				'close'        => true,
@@ -123,7 +124,7 @@ class WOForms {
 			)
 		);
 
-		$html  = '<label for="' . esc_attr( $id ) . '"';
+		$html  = '<label for="' . esc_attr( $args['for'] ? $args['for'] : $id ) . '"';
 		$html .= $this->maybe_class( $args['classes'] );
 		$html .= '>';
 
