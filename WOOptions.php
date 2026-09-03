@@ -126,12 +126,12 @@ class WOOptions {
 	 * @return void
 	 */
 	public function delete( $key ) {
-		$option_key = $this->key( $key );
-		delete_option( $option_key );
+		delete_option( $this->key( $key ) );
 
-		if ( isset( $this->options[ $option_key ] ) ) {
-			unset( $this->options[ $option_key ] );
-		}
+		/**
+		 * The read cache is keyed by the short (non-namespaced) key.
+		 */
+		unset( $this->options[ $key ] );
 	}
 
 	/**
@@ -151,10 +151,9 @@ class WOOptions {
 
 		/**
 		 * Remove the cached option, because the data is incorrect.
+		 * The read cache is keyed by the short (non-namespaced) key.
 		 */
-		if ( isset( $this->options[ $option_key ] ) ) {
-			unset( $this->options[ $option_key ] );
-		}
+		unset( $this->options[ $key ] );
 
 		if ( $refresh ) {
 			$this->refresh( $key );
